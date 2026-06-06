@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-MODEL   = "claude-sonnet-4-20250514"
+MODEL   = "claude-sonnet-4-5"
 MAX_TOK = 1024
 
 SYSTEM_PROMPT = """\
