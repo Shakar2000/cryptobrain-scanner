@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoBrain Fast Scanner</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0a0c10;
+      --surface:      #111318;
+      --surface2:     #1a1d24;
+      --border:       #23262f;
+      --text:         #e2e8f0;
+      --muted:        #64748b;
+      --accent:       #6c63ff;
+      --accent-glow:  rgba(108, 99, 255, 0.25);
+
+      --green:        #22c55e;
+      --green-bg:     rgba(34, 197, 94, 0.08);
+      --green-border: rgba(34, 197, 94, 0.35);
+      --green-glow:   rgba(34, 197, 94, 0.4);
+
+      --yellow:       #f59e0b;
+      --yellow-bg:    rgba(245, 158, 11, 0.08);
+      --yellow-border:rgba(245, 158, 11, 0.35);
+      --yellow-glow:  rgba(245, 158, 11, 0.4);
+
+      --red:          #ef4444;
+      --red-bg:       rgba(239, 68, 68, 0.08);
+      --red-border:   rgba(239, 68, 68, 0.35);
+      --red-glow:     rgba(239, 68, 68, 0.4);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 80px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .brain-icon {
+      font-size: 52px;
+      line-height: 1;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 18px var(--accent-glow));
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #a78bfa 0%, #6c63ff 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Form ─────────────────────────────────────────────────── */
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .form-row .input-wrap {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
+
+    /* ── Scan Button ──────────────────────────────────────────── */
+    .btn-scan {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6c63ff, #38bdf8);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.35);
+    }
+
+    .btn-scan:hover  { opacity: 0.92; box-shadow: 0 6px 28px rgba(108,99,255,0.5); }
+    .btn-scan:active { transform: scale(0.99); }
+    .btn-scan:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* ── Spinner ──────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Result Panel ─────────────────────────────────────────── */
+    #result { display: none; }
+
+    /* Verdict badge */
+    .verdict-banner {
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid;
+      transition: all 0.4s ease;
+    }
+
+    .verdict-banner.GREEN {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      box-shadow: 0 0 40px var(--green-glow), inset 0 0 60px rgba(34,197,94,0.04);
+    }
+
+    .verdict-banner.YELLOW {
+      background: var(--yellow-bg);
+      border-color: var(--yellow-border);
+      box-shadow: 0 0 40px var(--yellow-glow), inset 0 0 60px rgba(245,158,11,0.04);
+    }
+
+    .verdict-banner.RED {
+      background: var(--red-bg);
+      border-color: var(--red-border);
+      box-shadow: 0 0 40px var(--red-glow), inset 0 0 60px rgba(239,68,68,0.04);
+    }
+
+    .verdict-icon { font-size: 52px; line-height: 1; margin-bottom: 10px; }
+
+    .verdict-label {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    .GREEN .verdict-label  { color: var(--green); text-shadow: 0 0 20px var(--green-glow); }
+    .YELLOW .verdict-label { color: var(--yellow); text-shadow: 0 0 20px var(--yellow-glow); }
+    .RED .verdict-label    { color: var(--red); text-shadow: 0 0 20px var(--red-glow); }
+
+    .verdict-sub { color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+    /* ── Confidence Score ─────────────────────────────────────── */
+    .confidence-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 14px auto 0;
+      max-width: 340px;
+      padding: 0 4px;
+    }
+
+    .confidence-label-txt {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+
+    .confidence-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .confidence-num {
+      font-size: 16px;
+      font-weight: 800;
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .confidence-num small {
+      font-size: 11px;
+      opacity: 0.6;
+      font-weight: 600;
+    }
+
+    /* ── Scammer Alert Banner ────────────────────────────────── */
+    .scammer-alert {
+      background: rgba(239, 68, 68, 0.13);
+      border: 1.5px solid rgba(239, 68, 68, 0.65);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .scammer-alert .sc-icon { font-size: 26px; flex-shrink: 0; }
+
+    .scammer-alert .sc-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--red);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .scammer-alert .sc-sub {
+      font-size: 12px;
+      color: rgba(239, 68, 68, 0.8);
+      margin-top: 3px;
+      word-break: break-all;
+      font-family: monospace;
+    }
+
+    /* Token info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .info-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .info-cell .cell-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .info-cell .cell-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .cell-value.verified   { color: var(--green); }
+    .cell-value.unverified { color: var(--red); }
+    .cell-value.locked     { color: var(--green); }
+    .cell-value.unlocked   { color: var(--yellow); }
+
+    /* Findings lists */
+    .findings-section { margin-bottom: 16px; }
+
+    .findings-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .findings-title .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-red    { background: var(--red);    box-shadow: 0 0 6px var(--red-glow); }
+    .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow-glow); }
+    .dot-green  { background: var(--green);  box-shadow: 0 0 6px var(--green-glow); }
+
+    .findings-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .findings-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-size: 13px;
+    }
+
+    .findings-list li.red-item    { border-left: 3px solid var(--red); }
+    .findings-list li.yellow-item { border-left: 3px solid var(--yellow); }
+    .findings-list li.green-item  { border-left: 3px solid var(--green); color: var(--green); }
+
+    .findings-list li .flag-icon { font-size: 15px; flex-shrink: 0; }
+
+    /* Error state */
+    .error-box {
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--red);
+      font-size: 13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    /* Footer note */
+    .scan-footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    /* ── Animations ───────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fadeUp 0.35s ease both; }
+
+    /* ── Section Divider ─────────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0 14px;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .section-divider .divider-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Price change colors ──────────────────────────────────── */
+    .cell-value.change-up   { color: var(--green); }
+    .cell-value.change-down { color: var(--red); }
+    .cell-value.change-flat { color: var(--muted); }
+
+    /* ── No DEX notice ───────────────────────────────────────── */
+    .no-dex {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 4px 0 8px;
+      font-style: italic;
+    }
+
+    /* ── Management Panels ───────────────────────────────────── */
+    .mgmt-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .mgmt-header {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: var(--text);
+      text-align: left;
+      transition: background 0.15s;
+    }
+
+    .mgmt-header:hover { background: rgba(255,255,255,0.03); }
+
+    .mgmt-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mgmt-icon { font-size: 20px; line-height: 1; }
+
+    .mgmt-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .mgmt-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .mgmt-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mgmt-chevron {
+      color: var(--muted);
+      font-size: 11px;
+      transition: transform 0.2s;
+      user-select: none;
+    }
+
+    .mgmt-chevron.open { transform: rotate(180deg); }
+
+    .mgmt-body {
+      padding: 16px 22px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Status Dot ──────────────────────────────────────────── */
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .status-dot.on  { background: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+    .status-dot.off { background: var(--muted); }
+
+    /* ── Sniffer Controls ────────────────────────────────────── */
+    .sniffer-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sniffer-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .sniffer-stat-val {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .sniffer-btn-row {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-start {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-stop {
+      padding: 9px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-start:hover:not(:disabled) { opacity: 0.85; }
+    .btn-stop:hover:not(:disabled)  { border-color: var(--red); color: var(--red); }
+    .btn-start:disabled, .btn-stop:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .alerts-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .alerts-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .btn-refresh {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+    .alert-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .alert-item {
+      background: var(--surface2);
+      border: 1px solid var(--green-border);
+      border-left: 3px solid var(--green);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    .no-alerts-msg {
+      color: var(--muted);
+      font-size: 13px;
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    /* ── Scammer DB ──────────────────────────────────────────── */
+    .scammer-add-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .scammer-add-row input {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .btn-add {
+      padding: 11px 18px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+
+    .btn-add:hover { opacity: 0.85; }
+
+    .scammer-list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .scammer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+
+    .scammer-item-info { flex: 1; min-width: 0; }
+
+    .scammer-item-label {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .scammer-item-addr {
+      font-family: 'Courier New', monospace;
+      color: var(--muted);
+      font-size: 11px;
+      word-break: break-all;
+      margin-top: 2px;
+    }
+
+    .btn-remove {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-remove:hover { border-color: var(--red); color: var(--red); }
+
+    .empty-list {
+      color: var(--muted);
+      font-size: 13px;
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 520px) {
+      .form-row { flex-direction: column; }
+      .header h1 { font-size: 22px; }
+      .sniffer-top { flex-direction: column; }
+      .scammer-add-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="brain-icon">🧠</div>
+      <h1>CryptoBrain Fast Scanner</h1>
+      <p>Paste a contract address — get a Green / Yellow / Red verdict in seconds.</p>
+    </div>
+
+    <!-- Scan Form -->
+    <div class="card">
+      <div class="form-row">
+        <div class="input-wrap" style="flex: 2">
+          <label for="contract">Contract Address</label>
+          <input
+            id="contract"
+            type="text"
+            placeholder="0x... or Solana address"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <div class="input-wrap" style="flex: 1">
+          <label for="chain">Chain</label>
+          <select id="chain">
+            <option value="1">Ethereum</option>
+            <option value="56">BNB Chain</option>
+            <option value="137">Polygon</option>
+            <option value="42161">Arbitrum</option>
+            <option value="10">Optimism</option>
+            <option value="8453">Base</option>
+            <option value="43114">Avalanche</option>
+            <option value="solana">Solana</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-scan" id="scanBtn" onclick="runScan()">
+        🔍 &nbsp;Scan Contract
+      </button>
+      <p class="scan-footer">Powered by GoPlus Security API &nbsp;·&nbsp; No wallet connection needed</p>
+    </div>
+
+    <!-- Result -->
+    <div id="result"></div>
+
+    <!-- ── Scammer Database Panel ──────────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('scammer')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">🕵️</span>
+          <div>
+            <div class="mgmt-title">Scammer Database</div>
+            <div class="mgmt-sub" id="scammer-sub">Loading…</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="scammer-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="scammer-body" style="display:none">
+        <div class="scammer-add-row">
+          <input
+            id="scammer-addr"
+            type="text"
+            placeholder="Wallet / contract address"
+            autocomplete="off"
+            spellcheck="false"
+            onkeydown="if(event.key==='Enter') addScammer()"
+          />
+          <input
+            id="scammer-label"
+            type="text"
+            placeholder="Label (e.g. Rug pull dev)"
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter') addScammer()"
+          />
+          <button class="btn-add" onclick="addScammer()">+ Add</button>
+        </div>
+        <div id="scammer-list-wrap">
+          <div class="empty-list">No scammers tracked yet. Add a known bad actor above.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Live Token Sniffer Panel ───────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('sniffer')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">🤖</span>
+          <div>
+            <div class="mgmt-title">Live Token Sniffer</div>
+            <div class="mgmt-sub" id="sniffer-sub">Stopped — monitors DEX Screener every 5 min</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="status-dot off" id="sniffer-dot"></span>
+          <span class="mgmt-chevron" id="sniffer-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="sniffer-body" style="display:none">
+        <div class="sniffer-top">
+          <div class="sniffer-stats">
+            <div>Last scan: <span class="sniffer-stat-val" id="sniffer-last">—</span></div>
+            <div>Tokens seen: <span class="sniffer-stat-val" id="sniffer-seen">0</span></div>
+            <div>Green alerts: <span class="sniffer-stat-val" id="sniffer-green">0</span></div>
+          </div>
+          <div class="sniffer-btn-row">
+            <button class="btn-start" id="btn-sniffer-start" onclick="startSniffer()">▶ Start Bot</button>
+            <button class="btn-stop"  id="btn-sniffer-stop"  onclick="stopSniffer()" disabled>■ Stop</button>
+          </div>
+        </div>
+        <div class="alerts-header-row">
+          <span class="alerts-section-label">Recent Green Alerts</span>
+          <button class="btn-refresh" onclick="loadSnifferAlerts()">↻ Refresh</button>
+        </div>
+        <div class="alert-list" id="sniffer-alerts">
+          <div class="no-alerts-msg">No green alerts yet. Start the bot to begin monitoring.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const VERDICT_META = {
+    GREEN: {
+      icon: "✅",
+      label: "GREEN — LIKELY SAFE",
+      sub: "No critical issues detected. Always DYOR before investing.",
+    },
+    YELLOW: {
+      icon: "⚠️",
+      label: "YELLOW — PROCEED WITH CAUTION",
+      sub: "Some risk factors detected. Review findings before investing.",
+    },
+    RED: {
+      icon: "🚨",
+      label: "RED — HIGH RISK",
+      sub: "Serious red flags found. Avoid this token.",
+    },
+  };
+
+  async function runScan() {
+    const address = document.getElementById("contract").value.trim();
+    const chain   = document.getElementById("chain").value;
+    const btn     = document.getElementById("scanBtn");
+    const resultEl = document.getElementById("result");
+
+    if (!address) {
+      showError("Please enter a contract address.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Scanning…';
+    resultEl.style.display = "none";
+    resultEl.innerHTML = "";
+
+    try {
+      const resp = await fetch("/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contract_address: address, chain }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok || data.error) {
+        showError(data.error || "An unexpected error occurred.");
+        return;
+      }
+
+      renderResult(data);
+    } catch (err) {
+      showError("Network error — could not reach the server.");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "🔍 &nbsp;Scan Contract";
+    }
+  }
+
+  function renderResult(data) {
+    const resultEl = document.getElementById("result");
+    const {
+      verdict, info, red_findings, yellow_findings, dex,
+      scammer_match, confidence_score
+    } = data;
+    const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
+
+    // ── Scammer alert banner ─────────────────────────────────────
+    let scammerHtml = "";
+    if (scammer_match) {
+      scammerHtml = `
+        <div class="scammer-alert fade-up">
+          <span class="sc-icon">🕵️</span>
+          <div>
+            <div class="sc-title">⚠ Scammer Database Match</div>
+            <div class="sc-sub">
+              <strong>${escHtml(scammer_match.label)}</strong><br>
+              ${escHtml(scammer_match.address)}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ── Confidence score bar ─────────────────────────────────────
+    const score = confidence_score || 1;
+    const scoreColor = score >= 7 ? "var(--green)"
+                     : score >= 4 ? "var(--yellow)"
+                     :              "var(--red)";
+    const scoreWidth = (score / 10) * 100;
+    const confidenceHtml = `
+      <div class="confidence-row">
+        <span class="confidence-label-txt">Conviction</span>
+        <div class="confidence-bar-wrap">
+          <div class="confidence-fill"
+               style="width:${scoreWidth}%;background:${scoreColor}"></div>
+        </div>
+        <span class="confidence-num" style="color:${scoreColor}">
+          ${score}<small>/10</small>
+        </span>
+      </div>`;
+
+    let html = `
+      ${scammerHtml}
+
+      <!-- Verdict Banner -->
+      <div class="verdict-banner ${verdict} fade-up">
+        <div class="verdict-icon">${meta.icon}</div>
+        <div class="verdict-label">${meta.label}</div>
+        ${confidenceHtml}
+        <div class="verdict-sub">${meta.sub}</div>
+      </div>
+
+      <!-- Token Info Grid -->
+      <div class="card fade-up">
+        <div class="info-grid">
+          ${infoCell("Token", `${info.name} (${info.symbol})`)}
+          ${infoCell("Total Supply", formatNumber(info.total_supply))}
+          ${infoCell("Holders", formatNumber(info.holder_count))}
+          ${infoCell("LP Holders", formatNumber(info.lp_holder_count))}
+          ${infoCell("Buy Tax", info.buy_tax, taxClass(info.buy_tax))}
+          ${infoCell("Sell Tax", info.sell_tax, taxClass(info.sell_tax))}
+          ${infoCell("Top Holder", info.top_holder_pct || "N/A")}
+          ${infoCell("Source Code", info.is_verified ? "✓ Verified" : "✗ Unverified", info.is_verified ? "verified" : "unverified")}
+          ${infoCell("LP Locked", info.lp_locked ? "✓ Locked" : "✗ Not Locked", info.lp_locked ? "locked" : "unlocked")}
+        </div>
+
+        <!-- DEX Market Data -->
+        <div class="section-divider">
+          <span class="divider-label">Market Data · DEX Screener</span>
+        </div>
+        ${renderDexGrid(dex)}
+
+        <!-- Red Findings -->
+        ${red_findings.length > 0 ? `
+          <div class="findings-section">
+            <div class="findings-title">
+              <span class="dot dot-red"></span>
+              Red Flags (${red_findings.length})
+            </div>
+            <ul class="findings-list">
+              ${red_findings.map(f => `
+                <li class="red-item">
+                  <span class="flag-icon">🚩</span> ${escHtml(f)}
+                </li>`).join("")}
+            </ul>
+          </div>` : ""}
+
+        <!-- Yellow Findings -->
+        ${yellow_findings.length > 0 ? `
+          <div class="findings-section">
+            <div class="findings-title">
+              <span class="dot dot-yellow"></span>
+              Caution Flags (${yellow_findings.length})
+            </div>
+            <ul class="findings-list">
+              ${yellow_findings.map(f => `
+                <li class="yellow-item">
+                  <span class="flag-icon">⚠️</span> ${escHtml(f)}
+                </li>`).join("")}
+            </ul>
+          </div>` : ""}
+
+        <!-- All Clear -->
+        ${red_findings.length === 0 && yellow_findings.length === 0 ? `
+          <div class="findings-section">
+            <div class="findings-title">
+              <span class="dot dot-green"></span>
+              Findings
+            </div>
+            <ul class="findings-list">
+              <li class="green-item">
+                <span class="flag-icon">✅</span> No risk flags detected by GoPlus Security
+              </li>
+            </ul>
+          </div>` : ""}
+
+      </div>
+    `;
+
+    resultEl.innerHTML = html;
+    resultEl.style.display = "block";
+    resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function showError(msg) {
+    const resultEl = document.getElementById("result");
+    resultEl.innerHTML = `
+      <div class="error-box fade-up">
+        <span style="font-size:18px;flex-shrink:0">⛔</span>
+        <span>${escHtml(msg)}</span>
+      </div>`;
+    resultEl.style.display = "block";
+  }
+
+  function infoCell(label, value, extraClass = "") {
+    return `
+      <div class="info-cell">
+        <div class="cell-label">${label}</div>
+        <div class="cell-value ${extraClass}">${escHtml(String(value))}</div>
+      </div>`;
+  }
+
+  function taxClass(taxStr) {
+    const n = parseFloat(taxStr);
+    if (isNaN(n)) return "";
+    if (n > 10) return "unverified";
+    if (n > 5)  return "unlocked";
+    return "verified";
+  }
+
+  function formatNumber(val) {
+    const n = parseFloat(val);
+    if (isNaN(n)) return val || "N/A";
+    if (n >= 1e12) return (n / 1e12).toFixed(2) + "T";
+    if (n >= 1e9)  return (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6)  return (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3)  return n.toLocaleString();
+    return String(n);
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function renderDexGrid(dex) {
+    if (!dex || !dex.price_usd) {
+      return `<p class="no-dex">No DEX listing found — token may not be trading publicly yet.</p>`;
+    }
+
+    const changeVal   = parseFloat(dex.price_change_h24);
+    const changeClass = isNaN(changeVal) ? "change-flat"
+                      : changeVal > 0    ? "change-up"
+                      : changeVal < 0    ? "change-down"
+                      :                    "change-flat";
+    const changeStr   = isNaN(changeVal) ? "N/A"
+                      : `${changeVal > 0 ? "+" : ""}${changeVal.toFixed(2)}%`;
+
+    const buySell = (dex.buys_h24 != null && dex.sells_h24 != null)
+      ? `${Number(dex.buys_h24).toLocaleString()} / ${Number(dex.sells_h24).toLocaleString()}`
+      : "N/A";
+
+    const dexLabel = dex.dex_id
+      ? dex.dex_id.charAt(0).toUpperCase() + dex.dex_id.slice(1)
+      : "N/A";
+
+    const changeCell = `
+      <div class="info-cell">
+        <div class="cell-label">24h Price Change</div>
+        <div class="cell-value ${changeClass}">${escHtml(changeStr)}</div>
+      </div>`;
+
+    return `<div class="info-grid">
+      ${infoCell("Price (USD)", formatPrice(dex.price_usd))}
+      ${infoCell("24h Volume", dex.volume_h24 != null ? "$" + formatNumber(dex.volume_h24) : "N/A")}
+      ${infoCell("Liquidity Depth", dex.liquidity_usd != null ? "$" + formatNumber(dex.liquidity_usd) : "N/A")}
+      ${changeCell}
+      ${infoCell("Top DEX", dexLabel)}
+      ${infoCell("FDV", dex.fdv != null ? "$" + formatNumber(dex.fdv) : "N/A")}
+      ${infoCell("Buys / Sells (24h)", buySell)}
+    </div>`;
+  }
+
+  function formatPrice(val) {
+    const n = parseFloat(val);
+    if (isNaN(n) || n === 0) return "N/A";
+    if (n >= 1) {
+      return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    }
+    return "$" + n.toPrecision(4);
+  }
+
+  // ── Panel toggles ──────────────────────────────────────────────
+  function togglePanel(name) {
+    const body    = document.getElementById(name + "-body");
+    const chevron = document.getElementById(name + "-chevron");
+    const isOpen  = body.style.display !== "none";
+    body.style.display = isOpen ? "none" : "block";
+    chevron.classList.toggle("open", !isOpen);
+    if (!isOpen && name === "sniffer") { refreshSnifferStatus(); loadSnifferAlerts(); }
+    if (!isOpen && name === "scammer") loadScammerList();
+  }
+
+  // ── Sniffer Bot ────────────────────────────────────────────────
+  async function startSniffer() {
+    document.getElementById("btn-sniffer-start").disabled = true;
+    await fetch("/sniffer/start", { method: "POST" });
+    refreshSnifferStatus();
+  }
+
+  async function stopSniffer() {
+    document.getElementById("btn-sniffer-stop").disabled = true;
+    await fetch("/sniffer/stop", { method: "POST" });
+    refreshSnifferStatus();
+  }
+
+  async function refreshSnifferStatus() {
+    try {
+      const resp = await fetch("/sniffer/status");
+      const s    = await resp.json();
+      const on   = s.running;
+
+      document.getElementById("sniffer-dot").className = "status-dot " + (on ? "on" : "off");
+      document.getElementById("btn-sniffer-start").disabled = on;
+      document.getElementById("btn-sniffer-stop").disabled  = !on;
+      document.getElementById("sniffer-sub").textContent = on
+        ? "Running — scanning new tokens every 5 min"
+        : "Stopped — monitors DEX Screener every 5 min";
+
+      const lastRaw = s.last_scan;
+      document.getElementById("sniffer-last").textContent =
+        lastRaw ? new Date(lastRaw + "Z").toLocaleTimeString() : "—";
+      document.getElementById("sniffer-seen").textContent  = (s.seen_count  || 0).toLocaleString();
+      document.getElementById("sniffer-green").textContent = (s.green_count || 0).toLocaleString();
+    } catch(e) {}
+  }
+
+  async function loadSnifferAlerts() {
+    try {
+      const resp = await fetch("/sniffer/alerts?n=20");
+      const { alerts } = await resp.json();
+      const el = document.getElementById("sniffer-alerts");
+      if (!alerts || alerts.length === 0) {
+        el.innerHTML = '<div class="no-alerts-msg">No green alerts yet. Start the bot to begin monitoring.</div>';
+        return;
+      }
+      el.innerHTML = alerts
+        .map(line => `<div class="alert-item">${escHtml(line)}</div>`)
+        .join("");
+    } catch(e) {}
+  }
+
+  // ── Scammer DB ─────────────────────────────────────────────────
+  async function addScammer() {
+    const addr  = document.getElementById("scammer-addr").value.trim();
+    const label = document.getElementById("scammer-label").value.trim();
+    if (!addr) return;
+    await fetch("/scammer/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr, label: label || "Manual entry" }),
+    });
+    document.getElementById("scammer-addr").value  = "";
+    document.getElementById("scammer-label").value = "";
+    loadScammerList();
+  }
+
+  async function removeScammer(addr) {
+    await fetch("/scammer/remove", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr }),
+    });
+    loadScammerList();
+  }
+
+  async function loadScammerList() {
+    try {
+      const resp    = await fetch("/scammer/list");
+      const db      = await resp.json();
+      const entries = Object.entries(db);
+      const sub     = document.getElementById("scammer-sub");
+      const wrap    = document.getElementById("scammer-list-wrap");
+
+      sub.textContent = entries.length + " address" + (entries.length === 1 ? "" : "es") + " tracked";
+
+      if (entries.length === 0) {
+        wrap.innerHTML = '<div class="empty-list">No scammers tracked yet. Add a known bad actor above.</div>';
+        return;
+      }
+
+      wrap.innerHTML = `<div class="scammer-list-wrap">
+        ${entries.map(([addr, info]) => `
+          <div class="scammer-item">
+            <span class="flag-icon">🚩</span>
+            <div class="scammer-item-info">
+              <div class="scammer-item-label">${escHtml(info.label || "")}</div>
+              <div class="scammer-item-addr">${escHtml(addr)}</div>
+            </div>
+            <button class="btn-remove"
+                    onclick="removeScammer('${escHtml(addr)}')">✕ Remove</button>
+          </div>`).join("")}
+      </div>`;
+    } catch(e) {}
+  }
+
+  // ── Init ───────────────────────────────────────────────────────
+  document.getElementById("contract").addEventListener("keydown", e => {
+    if (e.key === "Enter") runScan();
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadScammerList();
+    refreshSnifferStatus();
+    setInterval(refreshSnifferStatus, 30_000);
+  });
+</script>
+</body>
+</html>
