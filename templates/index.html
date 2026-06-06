@@ -1268,6 +1268,131 @@
       font-family: 'Courier New', monospace;
     }
 
+    /* ── Moralis / Discover ────────────────────────────────────── */
+    .moralis-notice {
+      font-size: 11px;
+      color: var(--yellow);
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+    }
+    .discover-section { margin-top: 20px; }
+    .discover-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .discover-row input {
+      flex: 1;
+      min-width: 140px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .discover-row input:focus { outline: none; border-color: var(--accent); }
+    .discover-row select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .btn-discover {
+      background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(59,130,246,0.2));
+      border: 1px solid rgba(139,92,246,0.4);
+      color: #c4b5fd;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-discover:hover { background: rgba(139,92,246,0.3); }
+    .btn-discover:disabled { opacity: .45; cursor: not-allowed; }
+    .discover-results {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 8px;
+    }
+    .discover-summary {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .discover-summary strong { color: var(--text); }
+    .discover-candidate {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      transition: border-color .15s;
+    }
+    .discover-candidate.auto-added {
+      border-color: rgba(139,92,246,0.5);
+      background: rgba(139,92,246,0.06);
+    }
+    .discover-score {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+    }
+    .discover-score.high   { background: rgba(34,197,94,0.15);  color: var(--green);  }
+    .discover-score.mid    { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .discover-score.low    { background: rgba(100,116,139,0.12); color: var(--muted); }
+    .discover-info { flex: 1; min-width: 0; }
+    .discover-addr {
+      font-family: 'Courier New', monospace;
+      color: var(--text);
+      font-size: 11px;
+      word-break: break-all;
+    }
+    .discover-meta { color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .discover-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+    }
+    .discover-tag.added { color: #a78bfa; border-color: rgba(139,92,246,0.35); background: rgba(139,92,246,0.1); }
+    .discover-tag.holds { color: var(--green); border-color: rgba(34,197,94,0.3); }
+    .btn-enrich {
+      font-size: 11px;
+      background: none;
+      border: 1px solid rgba(59,130,246,0.3);
+      color: rgba(147,197,253,0.8);
+      cursor: pointer;
+      padding: 2px 7px;
+      border-radius: 5px;
+      transition: background .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-enrich:hover { background: rgba(59,130,246,0.1); }
+
     /* ── Market Pulse ──────────────────────────────────────────── */
     .pulse-stamp {
       background: rgba(100,116,139,0.06);
@@ -1765,6 +1890,34 @@
             <div class="no-alerts-msg">Activity appears here as tokens are scanned.</div>
           </div>
         </div>
+
+        <!-- Discover Whales -->
+        <div class="discover-section">
+          <div class="alerts-header-row" style="margin-bottom:10px">
+            <span class="alerts-section-label">🔍 Discover Whales</span>
+          </div>
+          <div id="moralis-notice" style="display:none" class="moralis-notice">
+            ⚠ MORALIS_API_KEY not set — whale discovery and profile enrichment require a Moralis API key.
+          </div>
+          <div class="discover-row">
+            <input
+              id="discover-token"
+              type="text"
+              placeholder="Token contract address (e.g. 0x…)"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <select id="discover-chain">
+              <option value="eth">Ethereum</option>
+              <option value="bsc">BNB Chain</option>
+              <option value="base">Base</option>
+              <option value="polygon">Polygon</option>
+            </select>
+            <button class="btn-discover" id="btn-discover-run" onclick="discoverWhales()">🐋 Discover</button>
+          </div>
+          <div id="discover-results-wrap"></div>
+        </div>
+
       </div>
     </div>
 
@@ -2891,12 +3044,133 @@
             <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0">
               <button class="btn-remove" onclick="removeWhale('${escHtml(addr)}')">✕</button>
               <button class="btn-profile" onclick="toggleWhaleProfile('${escHtml(addr)}','${escHtml(profId)}')">🐋 Profile</button>
+              <button class="btn-enrich" id="enrich-${escHtml(profId)}" onclick="enrichWhale('${escHtml(addr)}','${escHtml(profId)}')">⚡ Enrich</button>
             </div>
           </div>
           <div id="${escHtml(profId)}" class="whale-profile-section" style="display:none"></div>`;
         }).join("")}
       </div>`;
     } catch(e) {}
+  }
+
+  // ── Moralis enrichment & discovery ────────────────────────────
+  async function initMoralisStatus() {
+    try {
+      const r    = await fetch("/moralis/status");
+      const data = await r.json();
+      const el   = document.getElementById("moralis-notice");
+      if (el) el.style.display = data.available ? "none" : "block";
+    } catch(e) {}
+  }
+
+  async function enrichWhale(addr, profId) {
+    const btn = document.getElementById("enrich-" + profId);
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ …"; }
+    try {
+      const resp = await fetch("/whale/enrich/" + encodeURIComponent(addr), {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({}),
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+
+      const added  = data.added || 0;
+      const chains = (data.chains_scanned || []).join(", ") || "none";
+      if (btn) { btn.disabled = false; btn.textContent = `✓ +${added}`; }
+
+      // If profile panel is open and loaded, force a reload
+      const profEl = document.getElementById(profId);
+      if (profEl && profEl.style.display !== "none") {
+        profEl.dataset.loaded = "0";
+        toggleWhaleProfile(addr, profId);  // re-opens (closes then re-opens if needed)
+      }
+    } catch(e) {
+      if (btn) { btn.disabled = false; btn.textContent = "⚡ Enrich"; }
+      alert("Enrich failed: " + (e.message || e));
+    }
+  }
+
+  async function discoverWhales() {
+    const tokenAddr = document.getElementById("discover-token").value.trim();
+    const chain     = document.getElementById("discover-chain").value;
+    const btn       = document.getElementById("btn-discover-run");
+    const wrap      = document.getElementById("discover-results-wrap");
+
+    if (!tokenAddr) { alert("Enter a token contract address."); return; }
+
+    btn.disabled    = true;
+    btn.textContent = "⏳ Scanning…";
+    wrap.innerHTML  = '<div class="no-alerts-msg">Fetching transfer history — this may take 15-30 seconds…</div>';
+
+    try {
+      const resp = await fetch("/whale/discover", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({token_address: tokenAddr, chain, auto_add: true}),
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+
+      wrap.innerHTML = renderDiscoveryResults(data);
+      // Refresh whale list to show newly added wallets
+      loadWhaleList();
+    } catch(e) {
+      wrap.innerHTML = `<div class="moralis-notice">Discovery failed: ${escHtml(e.message || String(e))}</div>`;
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "🐋 Discover";
+    }
+  }
+
+  function renderDiscoveryResults(data) {
+    const candidates = data.candidates || [];
+    const autoAdded  = new Set(data.auto_added || []);
+    const total      = data.total_buyers || 0;
+
+    if (!candidates.length) {
+      return '<div class="no-alerts-msg">No buyers found for this token on this chain.</div>';
+    }
+
+    const summaryHtml = `
+      <div class="discover-summary">
+        Found <strong>${total}</strong> unique buyers ·
+        Showing top <strong>${candidates.length}</strong> scored ·
+        <span style="color:#a78bfa"><strong>${autoAdded.size}</strong> auto-added to whale database</span>
+        (threshold: score ≥ ${data.auto_add_threshold || 7})
+      </div>`;
+
+    const cardsHtml = candidates.map(c => {
+      const score      = c.score || 0;
+      const cls        = score >= 7 ? "high" : score >= 4 ? "mid" : "low";
+      const isAdded    = autoAdded.has(c.address);
+      const short      = c.address.slice(0, 10) + "…" + c.address.slice(-6);
+
+      const tags = [];
+      if (isAdded)       tags.push(`<span class="discover-tag added">🐋 Added to DB</span>`);
+      if (c.still_holds) tags.push(`<span class="discover-tag holds">💎 Still Holding</span>`);
+      tags.push(`<span class="discover-tag">Rank #${c.entry_rank} (top ${c.entry_rank_pct}%)</span>`);
+      if (c.portfolio_size > 0) tags.push(`<span class="discover-tag">${c.portfolio_size} tokens</span>`);
+
+      const scoreBkdn = [
+        `Entry: ${c.entry_score || 0}/4`,
+        `Size: ${c.size_score || 0}/2`,
+        `Portfolio: ${c.diversity_score || 0}/2`,
+        `Holding: ${c.holding_score || 0}/2`,
+      ].join(" · ");
+
+      return `
+        <div class="discover-candidate ${isAdded ? "auto-added" : ""}">
+          <div class="discover-score ${cls}">${score}</div>
+          <div class="discover-info">
+            <div class="discover-addr">${escHtml(short)}</div>
+            <div class="discover-meta">${tags.join("")}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">${escHtml(scoreBkdn)}</div>
+          </div>
+        </div>`;
+    }).join("");
+
+    return summaryHtml + `<div class="discover-results">${cardsHtml}</div>`;
   }
 
   async function toggleWhaleProfile(addr, profId) {
@@ -3050,6 +3324,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     initMarketPulse();
+    initMoralisStatus();
     loadScammerList();
     loadWhaleList();
     loadSmartWallets();

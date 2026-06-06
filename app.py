@@ -11,6 +11,7 @@ import wallet_tracker
 import signal_feed
 import market_pulse
 import ai_analyst
+import moralis_client
 
 app = Flask(__name__)
 
@@ -494,6 +495,53 @@ def whale_moby_route(address):
 def whale_activity():
     limit = min(int(request.args.get("n", 50)), 200)
     return jsonify({"activity": whale_profiler.get_recent_activity(limit)})
+
+
+@app.route("/whale/enrich/<address>", methods=["POST"])
+def whale_enrich_route(address):
+    data   = request.get_json(force=True) or {}
+    chains = data.get("chains")  # optional list of chain strings
+    result = moralis_client.enrich_whale_profile(address, chains)
+    code   = 200 if not result.get("error") else 502
+    return jsonify(result), code
+
+
+@app.route("/whale/discover", methods=["POST"])
+def whale_discover_route():
+    data          = request.get_json(force=True)
+    token_address = (data.get("token_address") or "").strip()
+    chain         = (data.get("chain") or "eth").strip().lower()
+    auto_add      = data.get("auto_add", True)
+
+    if not token_address:
+        return jsonify({"error": "token_address required"}), 400
+
+    if not moralis_client.is_available():
+        return jsonify({"error": "MORALIS_API_KEY not set — add it to your environment variables"}), 503
+
+    result = moralis_client.discover_early_buyers(token_address, chain)
+
+    if result.get("error"):
+        return jsonify(result), 502
+
+    # Auto-add high-scoring wallets to whale database
+    auto_added = []
+    if auto_add:
+        for c in result.get("candidates", []):
+            if c.get("score", 0) >= result["auto_add_threshold"]:
+                sym   = c.get("token_symbol", "???")
+                label = f"Discovered·{sym}·#{c.get('entry_rank', '?')}"
+                r     = whale_profiler.add_whale(c["address"], label)
+                if r.get("ok"):
+                    auto_added.append(c["address"])
+
+    result["auto_added"] = auto_added
+    return jsonify(result)
+
+
+@app.route("/moralis/status")
+def moralis_status():
+    return jsonify({"available": moralis_client.is_available()})
 
 
 # ── Market Pulse routes ───────────────────────────────────────────────────
