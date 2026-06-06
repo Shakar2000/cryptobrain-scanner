@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, jsonify
 import scammer_db
 import sniffer_bot
 import whale_profiler
+import team_analyzer
 
 app = Flask(__name__)
 
@@ -282,6 +283,12 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
         contract_address, chain_id, token_data, dex_data
     )
 
+    result["team_analysis"] = team_analyzer.process_token_scan(
+        contract_address, chain_id, token_data, dex_data,
+        verdict=result["verdict"],
+        is_known_scammer=result["scammer_match"] is not None,
+    )
+
     return result
 
 
@@ -361,6 +368,21 @@ def sniffer_status():
 def sniffer_alerts():
     n = min(int(request.args.get("n", 20)), 100)
     return jsonify({"alerts": sniffer_bot.recent_alerts(n)})
+
+
+# ── Team Analyzer routes ──────────────────────────────────────────────────
+
+@app.route("/team/profiles")
+def team_profiles():
+    return jsonify(list(team_analyzer.list_profiles().values()))
+
+
+@app.route("/team/profile/<address>")
+def team_profile_route(address):
+    profile = team_analyzer.get_profile(address)
+    if not profile:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify(profile)
 
 
 # ── Whale Profiler routes ─────────────────────────────────────────────────

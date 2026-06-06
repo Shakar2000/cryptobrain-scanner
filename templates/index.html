@@ -726,6 +726,226 @@
       .scammer-add-row { flex-direction: column; }
     }
 
+    /* ── Team Stability Analysis ────────────────────────────── */
+
+    .team-card {
+      margin-top: 0;
+    }
+
+    .team-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+
+    .team-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .team-title-text {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .team-score-display {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .team-score-display small {
+      font-size: 12px;
+      opacity: 0.6;
+      font-weight: 600;
+    }
+
+    /* Reputation badges */
+    .rep-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+
+    .rep-badge.TRUSTED          { background: rgba(34,197,94,0.15);   color: var(--green);  border: 1px solid rgba(34,197,94,0.35); }
+    .rep-badge.NEW              { background: var(--whale-bg);         color: var(--whale);  border: 1px solid var(--whale-border); }
+    .rep-badge.CLEAN            { background: var(--whale-bg);         color: var(--whale);  border: 1px solid var(--whale-border); }
+    .rep-badge.MIXED            { background: rgba(245,158,11,0.1);   color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .rep-badge.SUSPICIOUS       { background: rgba(249,115,22,0.12);  color: #f97316;       border: 1px solid rgba(249,115,22,0.35); }
+    .rep-badge.KNOWN-SCAMMER    { background: rgba(239,68,68,0.15);   color: var(--red);    border: 1px solid rgba(239,68,68,0.35); }
+
+    /* Signal chips grid */
+    .signals-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin: 14px 0;
+    }
+
+    .signal-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .signal-chip.good    { border-left: 3px solid var(--green); }
+    .signal-chip.caution { border-left: 3px solid var(--yellow); }
+    .signal-chip.bad     { border-left: 3px solid var(--red); }
+    .signal-chip.neutral { border-left: 3px solid var(--muted); }
+
+    .signal-icon {
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+      width: 14px;
+      text-align: center;
+    }
+
+    .signal-chip.good    .signal-icon { color: var(--green); }
+    .signal-chip.caution .signal-icon { color: var(--yellow); }
+    .signal-chip.bad     .signal-icon { color: var(--red); }
+    .signal-chip.neutral .signal-icon { color: var(--muted); }
+
+    /* Creator address row */
+    .team-addresses {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .team-addr-item code {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text);
+    }
+
+    /* Track record section */
+    .track-record {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
+
+    .track-record-summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .track-first-deployment {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+
+    .track-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      padding: 6px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .verdict-pill {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .verdict-pill.GREEN  { background: rgba(34,197,94,0.15);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
+    .verdict-pill.YELLOW { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .verdict-pill.RED    { background: rgba(239,68,68,0.12);  color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+
+    .track-item-name { font-weight: 600; color: var(--text); flex: 1; min-width: 0; }
+    .track-item-chain { color: var(--muted); }
+    .track-item-time  { color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+    /* Team Profiles Panel list items */
+    .team-profile-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+    }
+
+    .team-profile-item.rep-TRUSTED    { border-left-color: var(--green); }
+    .team-profile-item.rep-CLEAN      { border-left-color: var(--whale); }
+    .team-profile-item.rep-NEW        { border-left-color: var(--muted); }
+    .team-profile-item.rep-MIXED      { border-left-color: var(--yellow); }
+    .team-profile-item.rep-SUSPICIOUS { border-left-color: #f97316; }
+    .team-profile-item.rep-KNOWN-SCAMMER { border-left-color: var(--red); }
+
+    .team-profile-info { flex: 1; min-width: 0; }
+
+    .team-profile-addr {
+      font-family: 'Courier New', monospace;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+
+    .team-profile-stats {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .team-profiles-wrap {
+      display: flex;
+      flex-direction: column;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .team-search {
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .signals-grid { grid-template-columns: 1fr; }
+      .team-card-header { flex-wrap: wrap; }
+    }
+
     /* ── Whale Intelligence ──────────────────────────────────── */
     :root {
       --whale:        #3b82f6;
@@ -1021,6 +1241,37 @@
       </div>
     </div>
 
+    <!-- ── Team Profiles Panel ──────────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('team')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">👥</span>
+          <div>
+            <div class="mgmt-title">Team Profiles</div>
+            <div class="mgmt-sub" id="team-sub">Auto-populated from scans</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="team-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="team-body" style="display:none">
+        <div class="team-search">
+          <input
+            id="team-search-input"
+            type="text"
+            placeholder="Filter by address…"
+            autocomplete="off"
+            spellcheck="false"
+            oninput="filterTeamProfiles(this.value)"
+          />
+        </div>
+        <div class="team-profiles-wrap" id="team-profiles-list">
+          <div class="empty-list">No team profiles yet. Scan a token to build a creator profile.</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Whale Intelligence Panel ──────────────────────────── -->
     <div class="mgmt-panel">
       <button class="mgmt-header" onclick="togglePanel('whale')">
@@ -1139,7 +1390,7 @@
     const resultEl = document.getElementById("result");
     const {
       verdict, info, red_findings, yellow_findings, dex,
-      scammer_match, confidence_score, whale_alerts
+      scammer_match, confidence_score, whale_alerts, team_analysis
     } = data;
     const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
 
@@ -1276,6 +1527,8 @@
           </div>` : ""}
 
       </div>
+
+      ${renderTeamAnalysis(team_analysis)}
     `;
 
     resultEl.innerHTML = html;
@@ -1384,6 +1637,7 @@
     if (!isOpen && name === "sniffer") { refreshSnifferStatus(); loadSnifferAlerts(); }
     if (!isOpen && name === "scammer") loadScammerList();
     if (!isOpen && name === "whale")   { loadWhaleList(); loadWhaleActivity(); }
+    if (!isOpen && name === "team")    loadTeamProfiles();
   }
 
   // ── Sniffer Bot ────────────────────────────────────────────────
@@ -1487,6 +1741,152 @@
           </div>`).join("")}
       </div>`;
     } catch(e) {}
+  }
+
+  // ── Team Stability ─────────────────────────────────────────────
+
+  function renderTeamAnalysis(ta) {
+    if (!ta) return "";
+
+    const score = ta.stability_score || 1;
+    const rep   = ta.reputation || "NEW";
+    const repClass = rep.replace(/ /g, "-");
+
+    const scoreColor = score >= 7 ? "var(--green)"
+                     : score >= 4 ? "var(--yellow)"
+                     :              "var(--red)";
+
+    const sigIcons = { good: "✓", caution: "⚠", bad: "✗", neutral: "·" };
+    const signalsHtml = (ta.signals || []).map(s => `
+      <div class="signal-chip ${escHtml(s.status)}">
+        <span class="signal-icon">${sigIcons[s.status] || "·"}</span>
+        ${escHtml(s.label)}
+      </div>`).join("");
+
+    const ownerDisplay = ta.ownership_renounced
+      ? `<span style="color:var(--green)">✓ Renounced</span>`
+      : `<code>${ta.owner_address && ta.owner_address !== "N/A" ? escHtml(ta.owner_address.slice(0,10) + "…") : "N/A"}</code>`;
+
+    const creatorShort = ta.creator_address && ta.creator_address !== "N/A"
+      ? ta.creator_address.slice(0,10) + "…"
+      : "N/A";
+
+    // Track record section
+    let trackHtml = "";
+    const tr = ta.track_record;
+    if (tr && tr.token_count > 1) {
+      const prev = tr.token_count - 1;
+      const tokenItems = (tr.recent_tokens || []).map(t => `
+        <div class="track-item">
+          <span class="verdict-pill ${escHtml(t.verdict)}">${escHtml(t.verdict)}</span>
+          <span class="track-item-name">${escHtml(t.token_name)} (${escHtml(t.token_symbol)})</span>
+          <span class="track-item-chain">${escHtml(t.chain)}</span>
+          <span class="track-item-time">${timeAgo(t.last_scan)}</span>
+        </div>`).join("");
+
+      trackHtml = `
+        <div class="track-record">
+          <div class="track-record-summary">
+            <span>Creator track record across ${prev} previous token${prev > 1 ? "s" : ""}:</span>
+            <span style="color:var(--green);font-weight:700">${tr.green_count} GREEN</span>
+            <span style="color:var(--yellow);font-weight:700">${tr.yellow_count} YELLOW</span>
+            <span style="color:var(--red);font-weight:700">${tr.red_count} RED</span>
+          </div>
+          ${tokenItems}
+        </div>`;
+    } else {
+      trackHtml = `<div class="track-first-deployment">First observed deployment for this creator</div>`;
+    }
+
+    return `
+      <div class="card fade-up team-card">
+        <div class="team-card-header">
+          <div class="team-card-title">
+            <span style="font-size:18px;line-height:1">👥</span>
+            <span class="team-title-text">Team Stability</span>
+            <span class="rep-badge ${escHtml(repClass)}">${escHtml(rep)}</span>
+          </div>
+          <div class="team-score-display" style="color:${scoreColor}">${score}<small>/10</small></div>
+        </div>
+
+        <div class="confidence-row" style="margin-top:0">
+          <span class="confidence-label-txt">Stability</span>
+          <div class="confidence-bar-wrap">
+            <div class="confidence-fill" style="width:${(score/10)*100}%;background:${scoreColor}"></div>
+          </div>
+          <span class="confidence-num" style="color:${scoreColor}">${score}<small>/10</small></span>
+        </div>
+
+        <div class="signals-grid">${signalsHtml}</div>
+
+        <div class="team-addresses">
+          <span class="team-addr-item">Creator: <code>${escHtml(creatorShort)}</code></span>
+          <span class="team-addr-item">Ownership: ${ownerDisplay}</span>
+        </div>
+
+        ${trackHtml}
+      </div>`;
+  }
+
+  let _allTeamProfiles = [];
+
+  async function loadTeamProfiles() {
+    try {
+      const resp     = await fetch("/team/profiles");
+      _allTeamProfiles = await resp.json();
+      const sub = document.getElementById("team-sub");
+      sub.textContent = _allTeamProfiles.length + " creator profile" +
+                        (_allTeamProfiles.length === 1 ? "" : "s") + " built";
+      renderTeamProfileList(_allTeamProfiles);
+    } catch(e) {}
+  }
+
+  function filterTeamProfiles(query) {
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? _allTeamProfiles.filter(p => (p.address || "").includes(q))
+      : _allTeamProfiles;
+    renderTeamProfileList(filtered);
+  }
+
+  function renderTeamProfileList(profiles) {
+    const wrap = document.getElementById("team-profiles-list");
+    if (!profiles || profiles.length === 0) {
+      wrap.innerHTML = '<div class="empty-list">No creator profiles yet. Scan a token to build one.</div>';
+      return;
+    }
+
+    // Sort by last_seen descending
+    const sorted = [...profiles].sort((a, b) =>
+      (b.last_seen || "").localeCompare(a.last_seen || ""));
+
+    wrap.innerHTML = `<div class="team-profiles-wrap">
+      ${sorted.map(p => {
+        const rep      = p.reputation || "NEW";
+        const repClass = rep.replace(/ /g, "-");
+        const addr     = p.address || "";
+        const short    = addr.length > 16 ? addr.slice(0,10) + "…" + addr.slice(-6) : addr;
+        const tc       = p.token_count || 0;
+
+        return `
+          <div class="team-profile-item rep-${escHtml(repClass)}">
+            <div class="team-profile-info">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="rep-badge ${escHtml(repClass)}">${escHtml(rep)}</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(short)}</span>
+              </div>
+              <div class="team-profile-addr">${escHtml(addr)}</div>
+              <div class="team-profile-stats">
+                <span>${tc} token${tc === 1 ? "" : "s"} scanned</span>
+                <span style="color:var(--green)">● ${p.green_count || 0} GREEN</span>
+                <span style="color:var(--yellow)">● ${p.yellow_count || 0} YELLOW</span>
+                <span style="color:var(--red)">● ${p.red_count || 0} RED</span>
+                <span>· ${timeAgo(p.last_seen)}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join("")}
+    </div>`;
   }
 
   // ── Whale Intelligence ─────────────────────────────────────────
