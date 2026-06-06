@@ -2,7 +2,23 @@
 
 **Date:** 2026-06-06  
 **Branch:** master  
-**Commits:** 10 (initial + 7 feature phases + 1 bugfix + 1 UX improvement)
+**Commits:** 13
+
+| # | Commit | Description |
+|---|--------|-------------|
+| 1 | `3553ac4` | Initial commit: CryptoBrain Scanner project |
+| 2 | `5c341ed` | Phase 2 Whale Profiler — track wallets, log entry/exit patterns, Whale Intelligence UI panel |
+| 3 | `4bf4e21` | Phase 2 Team Stability Analyzer — creator profiling, stability scoring, track record |
+| 4 | `2fd1313` | Phase 3 Smart Money Signal Feed — wallet registry, signal scoring, live feed + scan card |
+| 5 | `3d3fc3c` | docs: add PROJECT_STATE.md |
+| 6 | `a4ca00e` | Phase 4: Daily Market Pulse snapshot system |
+| 7 | `ecaa194` | Fix BTC dominance parsing and timestamp format in market_pulse.py |
+| 8 | `0d2a067` | Phase 5: AI Analysis Engine (Claude trade verdict) |
+| 9 | `32652a0` | Update AI analyst model to claude-sonnet-4-5 |
+| 10 | `03e6363` | Phase 6: Moby Dick Whale Profiler — full behavioral profiling engine |
+| 11 | `7fb0ac7` | Phase 7: Moralis API integration for cross-chain whale profiling |
+| 12 | `1b375ae` | Add hex chain ID support and BSC-first enrich order |
+| 13 | `b7d2877` | Auto-enrich on whale track: remove Enrich button, add loading indicator |
 
 ---
 
@@ -17,9 +33,9 @@ multi-layered intelligence report:
 4. **Team Stability** — profiles token creators, scores their contract practices, tracks their deployment history
 5. **Smart Money Signal** — detects pre-registered "smart money" wallets in top holders and scores the signal 1–10
 6. **Market Pulse** — daily macro snapshot (BTC/ETH/SOL prices, BTC dominance, Fear & Greed) with CLEAR/CAUTION/DEFENSIVE verdict stamped on every scan
-7. **AI Analysis Engine** — sends the complete scan data to Claude (claude-sonnet-4-5) and returns a structured trade verdict with layer, deploy amount, target price, pull-out amount, stop loss, and 3-sentence reasoning
+7. **AI Analysis Engine** — sends the complete scan data to Claude (`claude-sonnet-4-5`) and returns a structured trade verdict with layer, deploy amount, target price, pull-out amount, stop loss, and 3-sentence reasoning
 8. **Moby Dick Whale Profiler** — builds full behavioral profiles per tracked whale wallet: Entry/Exit/Shakeout profiles with historical averages and a Pattern Score (UNRELIABLE → EMERGING → RELIABLE → ORACLE); fires a Moby Dick Alert when a whale's new entry conditions match their historical pattern
-9. **Moralis Integration** — cross-chain wallet enrichment (ETH/BSC/Base/Polygon) and whale discovery: paste any successful token to pull its early buyers, score them 1–10 by entry timing/size/holdings, auto-add wallets scoring 7+ to the whale database
+9. **Moralis Integration** — cross-chain wallet enrichment and whale discovery; tracking a wallet automatically enriches its history across BSC → ETH → Base via Moralis; paste any successful token to pull its early buyers, score them 1–10 by entry timing/size/holdings, auto-add wallets scoring 7+ to the whale database
 
 A background sniffer bot can poll DEX Screener every 5 minutes for new token
 listings and auto-scan them, logging any GREEN verdicts.
@@ -32,29 +48,29 @@ listings and auto-scan them, logging any GREEN verdicts.
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| `app.py` | ~570 | Flask application. Registers all routes. `scan_token()` is the main pipeline. |
+| `app.py` | 577 | Flask application. All routes. `scan_token()` is the main pipeline. `/whale/add` auto-fires background Moralis enrichment on successful add. |
 | `scammer_db.py` | 50 | CRUD wrapper around `scammer_db.json`. Blacklist checked against creator/owner on every scan. |
 | `sniffer_bot.py` | 153 | Background daemon. Polls DEX Screener every 5 minutes, auto-scans, logs GREEN verdicts. |
-| `whale_profiler.py` | ~390 | Manages `whale_profiles.json`. Tracks user-added wallets; classifies ENTRY/EXIT/INCREASE/DECREASE/DETECTED. Phase 6: builds Entry/Exit/Shakeout/Pattern behavioral profiles; fires Moby Dick Alerts. |
-| `moralis_client.py` | ~230 | Moralis API wrapper. Raw endpoints: wallet history, token transfers, current holdings. Higher-level: `enrich_whale_profile()` (multi-chain enrichment), `discover_early_buyers()` (token-to-whale discovery with scoring). |
+| `whale_profiler.py` | 651 | Manages `whale_profiles.json`. Tracks user-added wallets; classifies ENTRY/EXIT/INCREASE/DECREASE/DETECTED. Computes Entry/Exit/Shakeout/Pattern behavioral profiles; fires Moby Dick Alerts on pattern-matched entries. |
+| `moralis_client.py` | 324 | Moralis v2.2 API wrapper. Raw endpoints: wallet history, token transfers (wallet or contract), current holdings. `enrich_whale_profile()`: multi-chain enrichment defaulting to `ENRICH_CHAINS = ["0x38", "0x1", "0x2105"]` (BSC → ETH → Base). `discover_early_buyers()`: token-to-whale discovery with 1–10 scoring. |
 | `team_analyzer.py` | 310 | Manages `team_profiles.json`. Scores creator contract practices 1–10; assigns TRUSTED/CLEAN/NEW/MIXED/SUSPICIOUS/KNOWN SCAMMER reputation. |
 | `wallet_tracker.py` | 113 | Manages `smart_wallets.json`. CRUD for smart money wallet registry; detects in GoPlus holders. |
 | `signal_feed.py` | 198 | Manages `smart_money_signals.json`. Scores smart money hits 1–10; type tags MULTI_WALLET/EARLY_ENTRY/CLEAN_ENTRY/HIGH_CONVICTION. |
-| `market_pulse.py` | 97 | Manages `market_pulse_log.json`. Fetches BTC/ETH/SOL prices (CoinGecko), BTC dominance (CoinGecko /global `market_cap_percentage.btc`), Fear & Greed (Alternative.me). Caches once per day; max 90-day rolling window. |
-| `ai_analyst.py` | ~110 | Calls `claude-sonnet-4-5` with the full scan result. Builds a structured prompt, parses the response for verdict/layer/deploy/target/pullout/stop_loss/reasoning. Returns `None` if `ANTHROPIC_API_KEY` not set. |
+| `market_pulse.py` | 97 | Manages `market_pulse_log.json`. Fetches BTC/ETH/SOL prices (CoinGecko), BTC dominance (CoinGecko `/global` → `market_cap_percentage.btc`), Fear & Greed (Alternative.me). Caches once per day; max 90-day rolling window. |
+| `ai_analyst.py` | 136 | Calls `claude-sonnet-4-5` with the full scan result. Parses response for verdict/layer/deploy/target_price/pullout/stop_loss/reasoning. Returns `None` if `ANTHROPIC_API_KEY` not set. |
 
 ### HTML / templates
 
 | File | Lines | Purpose |
-|------|-------|---------|
-| `templates/index.html` | ~3200 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts eight collapsible management panels. |
+|------|------:|---------|
+| `templates/index.html` | 3333 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts collapsible management panels. |
 
 ### Data files (auto-created, git-tracked)
 
 | File | Purpose |
 |------|---------|
 | `scammer_db.json` | Known bad-actor addresses |
-| `whale_profiles.json` | User-tracked wallet profiles with rolling 100-event activity logs (500 for Moralis-enriched) + Phase 6 behavioral context fields |
+| `whale_profiles.json` | Tracked wallet profiles. Activity logs: 100-event cap for live-scan events, 500-event cap for Moralis-enriched profiles. Each event carries Phase 6 behavioral context fields. |
 | `team_profiles.json` | Auto-built creator profiles (rolling 50 tokens per address) |
 | `smart_wallets.json` | Smart money wallet registry with signal counts |
 | `smart_money_signals.json` | Scored signal feed, one record per token (max 500) |
@@ -65,7 +81,7 @@ listings and auto-scan them, logging any GREEN verdicts.
 | File | Purpose |
 |------|---------|
 | `Procfile` | Heroku: `web: gunicorn app:app --workers 2` |
-| `requirements.txt` | `Flask`, `requests`, `gunicorn`, `anthropic` |
+| `requirements.txt` | `flask`, `requests`, `gunicorn`, `anthropic` |
 | `README.md` | Usage guide |
 
 ---
@@ -88,9 +104,9 @@ calculate_confidence()   → confidence_score  1–10
          │
          ▼
 market_pulse             → market_pulse      btc/eth/sol prices, dominance, F&G, macro_verdict
-         │                                   (runs FIRST so macro context is available to whale_profiler)
+         │                                   (runs before whale_profiler so macro context is stored on events)
          ▼
-whale_profiler           → whale_alerts      list of tracked-wallet hits (with moby_dick flag)
+whale_profiler           → whale_alerts      list of tracked-wallet hits (moby_dick flag per alert)
                            moby_dick_alerts  high-conviction pattern-match alerts
          │
          ▼
@@ -101,7 +117,7 @@ signal_feed              → smart_money       has_signal, strength, label, type
          │
          ▼
 ai_analyst               → brain_verdict     verdict, layer, deploy, target_price, pullout,
-                                             stop_loss, reasoning (Claude API — skipped if no key)
+                                             stop_loss, reasoning (skipped if no ANTHROPIC_API_KEY)
          │
          ▼
 return full result dict  → serialised as JSON to the browser
@@ -140,13 +156,13 @@ return full result dict  → serialised as JSON to the browser
 | Method | Route | Description |
 |--------|-------|-------------|
 | GET | `/whale/list` | All tracked whale profiles |
-| POST | `/whale/add` | Add wallet. Body: `{ address, label }` |
+| POST | `/whale/add` | Add wallet. Body: `{ address, label }`. If `MORALIS_API_KEY` is set, immediately fires `enrich_whale_profile()` in a background thread and returns `enriching: true`. |
 | POST | `/whale/remove` | Remove wallet. Body: `{ address }` |
-| GET | `/whale/profile/<address>` | Full profile + computed behavioral_profile for one wallet |
-| GET | `/whale/moby/<address>` | Behavioral profile only (entry/exit/shakeout/pattern_score) |
-| GET | `/whale/activity?n=50` | Global activity feed, newest first |
-| POST | `/whale/enrich/<address>` | Trigger Moralis cross-chain enrichment for a tracked whale. Body: `{ chains: ["0x38","0x1","0x2105"] }` (optional — defaults to `ENRICH_CHAINS`). Called automatically by `/whale/add` when `MORALIS_API_KEY` is set. |
-| POST | `/whale/discover` | Discover early buyers of a token. Body: `{ token_address, chain, auto_add }`. Scores candidates 1-10, auto-adds ≥7 to whale DB. |
+| GET | `/whale/profile/<address>` | Full profile + computed `behavioral_profile` for one wallet |
+| GET | `/whale/moby/<address>` | Behavioral profile only (entry_profile, exit_profile, shakeout_profile, pattern_score) |
+| GET | `/whale/activity?n=50` | Global activity feed across all tracked wallets, newest first |
+| POST | `/whale/enrich/<address>` | Trigger Moralis enrichment manually. Body: `{ chains: ["0x38","0x1","0x2105"] }` optional — defaults to `ENRICH_CHAINS`. |
+| POST | `/whale/discover` | Discover early buyers of a token. Body: `{ token_address, chain, auto_add }`. Scores candidates 1–10, auto-adds ≥7 to whale DB. |
 
 ### Team Analyzer
 
@@ -169,14 +185,14 @@ return full result dict  → serialised as JSON to the browser
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| GET | `/snapshot` | Today's macro snapshot (fetches fresh if not cached; `?refresh=1` to force) |
-| GET | `/snapshot/log?n=30` | Historical daily snapshots, newest first |
+| GET | `/snapshot` | Today's macro snapshot (`?refresh=1` to force re-fetch) |
+| GET | `/snapshot/log?n=30` | Historical daily snapshots, newest first (max 90) |
 
 ### Moralis
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| GET | `/moralis/status` | `{ available: true/false }` — whether MORALIS_API_KEY is set |
+| GET | `/moralis/status` | `{ available: true/false }` — whether `MORALIS_API_KEY` is set |
 
 ---
 
@@ -196,8 +212,8 @@ Starts from up to 8 "green confirms" (open source, LP locked, buy tax ≤5%, sel
 
 ### Team Stability score (1–10)
 
-| Signal | Max pts |
-|--------|---------|
+| Signal | Points |
+|--------|--------|
 | Source code verified | +2 |
 | Liquidity locked | +2 |
 | Creator holds < 5% | +2 |
@@ -207,14 +223,14 @@ Starts from up to 8 "green confirms" (open source, LP locked, buy tax ≤5%, sel
 | Track-record bonus (3+ prior GREEN) | +1 |
 | Track-record penalty (prior RED tokens) | −1.5 to −3 |
 
-Reputation: NEW → CLEAN → TRUSTED (clean track record) or MIXED → SUSPICIOUS → KNOWN SCAMMER (bad history).
+Reputation ladder: NEW → CLEAN → TRUSTED (clean) or MIXED → SUSPICIOUS → KNOWN SCAMMER (bad history).
 
 ### Smart Money signal score (1–10)
 
 | Factor | Points |
 |--------|--------|
-| 1 wallet detected | +3 (base) |
-| 2+ wallets detected | +6 (base, capped) |
+| 1 wallet detected | +3 |
+| 2+ wallets detected | +6 (capped) |
 | Holder count < 500 (EARLY_ENTRY) | +2 |
 | Holder count 500–1500 | +1 |
 | Liquidity $10K–$500K | +1 |
@@ -222,7 +238,7 @@ Reputation: NEW → CLEAN → TRUSTED (clean track record) or MIXED → SUSPICIO
 | Verdict RED | −2 |
 | Team stability ≥ 7 | +1 |
 
-Labels: 1–3 = WEAK, 4–5 = MODERATE, 6–7 = STRONG, 8–10 = ULTRA.
+Labels: 1–3 = WEAK · 4–5 = MODERATE · 6–7 = STRONG · 8–10 = ULTRA.
 
 ### Market Pulse macro verdict
 
@@ -240,93 +256,121 @@ Labels: 1–3 = WEAK, 4–5 = MODERATE, 6–7 = STRONG, 8–10 = ULTRA.
 | 2 | Strong | $60 | −20% |
 | 3 | Ultra | $90 | −25% |
 
-- Target is always 2.5× entry price
-- Pull-out = deployed × 2.5
+- Target always 2.5× entry price; pull-out = deployed × 2.5
 - Never GREEN on RED-verdict tokens or KNOWN SCAMMER team
 
 ### Moby Dick Behavioral Profile — Pattern Score (0–10)
 
 | Factor | Max pts |
 |--------|---------|
-| Data richness (entries + exits, capped) | 4 |
-| F&G entry consistency (std dev < 15) | 2 |
-| Liquidity entry consistency (CV < 0.4) | 2 |
-| Exit data bonus | 2 |
+| Data richness (entries + exits, capped at 4) | 4 |
+| F&G entry consistency (stdev < 15 = 2pts, < 30 = 1pt) | 2 |
+| Liquidity entry consistency (CV < 0.4 = 2pts, < 0.8 = 1pt) | 2 |
+| Exit data bonus (1pt per exit, capped) | 2 |
 
 Grades: 1–3 = UNRELIABLE · 4–5 = EMERGING · 6–7 = RELIABLE · 8–10 = ORACLE
 
 ### Moby Dick Alert — match score (0–4)
 
-Fires (score ≥ 3) when the current token matches this whale's historical entry pattern on:
+Fires when score ≥ 3, requires ≥ 3 prior ENTRY events in activity log.
 
-1. Fear & Greed within typical entry range (generous margin)
-2. Liquidity within 5× of typical entry liquidity
-3. Holder count within typical entry range
-4. Market cap within one order of magnitude of typical entry mcap
-
-Requires ≥ 3 prior entry events in the whale's activity log to guard against false positives.
+| Check | +1 if… |
+|-------|--------|
+| F&G match | current F&G within whale's typical entry range ± generous margin |
+| Liquidity match | current liquidity within 0.2×–5× of whale's avg entry liquidity |
+| Holder count match | current holder count within whale's typical range ± generous margin |
+| Market cap match | current market cap within 10× of whale's typical entry mcap |
 
 ### Moralis whale discovery score (1–10)
 
-| Factor | Max pts | How |
-|--------|---------|-----|
-| Entry timing | 4 | Percentile rank of first buy among all buyers: top 5%=4, top 15%=3, top 30%=2, rest=1 |
-| Buy size | 2 | Buy value vs median: ≥3× median=2, ≥median=1, else=0 |
+| Factor | Max pts | Condition |
+|--------|---------|-----------|
+| Entry timing | 4 | Percentile rank among all buyers: top 5%=4, top 15%=3, top 30%=2, rest=1 |
+| Buy size | 2 | vs median buy: ≥3× median=2, ≥median=1, else=0 |
 | Portfolio diversity | 2 | Unique tokens in current holdings: ≥5=2, ≥2=1, else=0 |
-| Still holding | 2 | Still holds this exact token at time of query: yes=2, no=0 |
+| Still holding | 2 | Still holds the token at query time: yes=2, no=0 |
 
 Score ≥ 7 → auto-added to whale database with label `Discovered·{SYMBOL}·#{rank}`.
 
 ---
 
-## Behavioral profile fields stored per activity event (Phase 6)
+## Behavioral profile fields per activity event
 
-Each event in `activity_log` now carries:
+Every event written to `activity_log` by the live-scan pipeline carries:
 
 | Field | Source |
 |-------|--------|
+| `timestamp` | UTC, `YYYY-MM-DDTHH:MM:SSZ` format |
+| `event_type` | ENTRY / EXIT / INCREASE / DECREASE / DETECTED |
+| `chain` / `chain_id` | from CHAIN_NAMES map in whale_profiler.py |
+| `token_address` / `token_name` / `token_symbol` | GoPlus |
+| `holdings_pct` | GoPlus holder percent × 100 |
+| `price_usd` / `liquidity_usd` / `volume_h24` | DEX Screener |
 | `holder_count` | GoPlus `holder_count` |
 | `market_cap` | DEX Screener `marketCap` or `fdv` |
 | `fear_greed` | Market Pulse snapshot |
 | `btc_dominance` | Market Pulse snapshot |
 | `macro_verdict` | Market Pulse snapshot |
 
-EXIT events additionally carry `entry_price_usd` (from the stored entry record) for exit multiplier calculation.
+EXIT events additionally carry `entry_price_usd` (copied from the stored entry record at ENTRY time) for exit-multiplier computation.
 
-Moralis-enriched events additionally carry `value_decimal` (token amount) and `tx_hash`. Fields that require real-time data (price_usd, liquidity_usd, fear_greed etc.) are `null` on Moralis events and get filled in by subsequent live scans.
+Moralis-enriched events additionally carry `value_decimal` (token amount transferred) and `tx_hash`. Fields requiring real-time data (`price_usd`, `liquidity_usd`, `fear_greed`, etc.) are `null` on Moralis events — they get filled in when the wallet is detected in a subsequent live scan.
 
 ---
 
-## Moralis API endpoints used
+## Moralis API (moralis_client.py)
 
-Base URL: `https://deep-index.moralis.io/api/v2.2`  
-Auth: `X-API-Key: <MORALIS_API_KEY>` header
+**Base URL:** `https://deep-index.moralis.io/api/v2.2`  
+**Auth:** `X-API-Key: <MORALIS_API_KEY>` request header
 
-| Endpoint | Used for |
+### Endpoints used
+
+| Endpoint | Purpose |
 |----------|---------|
 | `GET /wallets/{address}/history` | Full wallet transaction history |
-| `GET /erc20/{address}/transfers` | ERC20 transfers for a wallet (enrichment) or all transfers of a token contract (discovery) |
-| `GET /{address}/erc20` | Current ERC20 holdings (still-holding check in discovery scoring) |
+| `GET /erc20/{address}/transfers` | ERC20 transfers for a wallet address (enrichment) |
+| `GET /erc20/{token_address}/transfers` | All transfers of a token contract (discovery) |
+| `GET /{address}/erc20` | Current ERC20 token balances (still-holding check) |
 
-Chains supported: `eth`, `bsc`, `base`, `polygon`
+### Chain identifiers
+
+Both Moralis hex IDs and string aliases are supported as the `chain` parameter. `ENRICH_CHAINS` defines the default order for wallet enrichment:
+
+| Moralis hex | String alias | Network | Decimal chain ID |
+|-------------|-------------|---------|-----------------|
+| `0x38` | `bsc` | BNB Chain | 56 |
+| `0x1` | `eth` | Ethereum | 1 |
+| `0x2105` | `base` | Base | 8453 |
+| `0x89` | `polygon` | Polygon | 137 |
+
+`ENRICH_CHAINS = ["0x38", "0x1", "0x2105"]` — BSC first (highest meme-coin activity), then ETH, then Base. Polygon excluded from default to limit latency.
+
+### Auto-enrich flow
+
+When a wallet is added via `POST /whale/add` and `MORALIS_API_KEY` is set:
+1. `whale_profiler.add_whale()` saves the wallet to `whale_profiles.json`
+2. A daemon `threading.Thread` fires `moralis_client.enrich_whale_profile()` immediately
+3. The HTTP response returns `{ ok: true, enriching: true }` without waiting
+4. The UI shows a spinner banner: *"Enriching [name] — fetching cross-chain history (BSC → ETH → Base)…"*
+5. After ~25 s the banner auto-removes and the whale list refreshes
 
 ---
 
 ## UI panels (index.html)
 
-All panels are collapsible. Panels load data lazily on first open.
+All panels are collapsible and lazy-load on first open.
 
-| Panel | Icon | Function |
+| Panel | Icon | Contents |
 |-------|------|----------|
-| Scan Form | — | Contract address + chain dropdown + Scan button |
-| Result Area | — | Brain Verdict → Moby Dick Alert → Macro Pulse stamp → Scammer banner → Whale banner → Smart Money card → Verdict banner → Token info → DEX data → Findings → Team Stability card |
-| Market Pulse | 🌐 | Live BTC/ETH/SOL prices, F&G and dominance bars, macro verdict badge, 14-day history |
-| Scammer Database | 🕵️ | Add/remove known bad actor addresses |
-| Live Token Sniffer | 🤖 | Start/stop background bot; stats + GREEN alert log |
-| Team Profiles | 👥 | Address-filterable list of all auto-profiled creators |
-| Whale Intelligence | 🐋 | Add/remove tracked wallets; tracking auto-triggers Moralis enrichment (BSC → ETH → Base) with spinner while running; 🐋 Profile button (behavioral profile); activity feed; 🔍 Discover Whales (token → scored early buyers → auto-add ≥7 to DB) |
+| Scan Form | — | Contract address input + chain dropdown + Scan button |
+| Result Area | — | Brain Verdict card → Moby Dick Alert banner → Macro Pulse stamp → Scammer banner → Whale alert banner → Smart Money card → Verdict banner → Token info → DEX data → Findings list → Team Stability card |
+| Market Pulse | 🌐 | Live BTC/ETH/SOL prices, Fear & Greed bar, BTC dominance bar, macro verdict badge, 14-day history table |
+| Scammer Database | 🕵️ | Add/remove known bad-actor addresses |
+| Live Token Sniffer | 🤖 | Start/stop background bot; stats counters + GREEN alert log |
+| Team Profiles | 👥 | Address-filterable list of all auto-profiled creator wallets |
+| Whale Intelligence | 🐋 | Track wallet (auto-enriches on add with spinner); 🐋 Profile button per card (lazy-loads behavioral profile from `/whale/moby/`); activity feed; 🔍 Discover Whales section (token address + chain → scored candidate list → auto-adds ≥7 to DB) |
 | Smart Money Wallets | 💰 | Add/remove smart money wallets |
-| Smart Money Feed | 💎 | Persistent signal feed across all tokens |
+| Smart Money Feed | 💎 | Persistent scored signal feed across all scanned tokens |
 
 ---
 
@@ -334,22 +378,22 @@ All panels are collapsible. Panels load data lazily on first open.
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `ANTHROPIC_API_KEY` | Optional | Enables AI Analysis Engine (Phase 7). If absent, `brain_verdict` is `null` and the Brain Verdict card is silently skipped. |
-| `MORALIS_API_KEY` | Optional | Enables whale profile enrichment and discovery. If absent, `/whale/enrich` and `/whale/discover` return error; UI shows a notice. |
-| `PORT` | Optional | HTTP port (default 8080) |
+| `ANTHROPIC_API_KEY` | Optional | Enables AI Brain Verdict. If absent, `brain_verdict` is `null` and the card is silently skipped. |
+| `MORALIS_API_KEY` | Optional | Enables auto-enrichment on whale add, `/whale/enrich`, and `/whale/discover`. If absent, those routes return an error and the UI shows a notice banner. |
+| `PORT` | Optional | HTTP port (default `8080`) |
 
 ---
 
-## External APIs used
+## External APIs
 
-| API | Usage | Auth required |
-|-----|-------|--------------|
-| GoPlus Security (`api.gopluslabs.io`) | Token security data — holders, tax, risk flags | None (public) |
-| DEX Screener (`api.dexscreener.com`) | Price, liquidity, volume, pair data | None (public) |
-| CoinGecko (`api.coingecko.com`) | BTC/ETH/SOL prices; BTC dominance via `/global` → `market_cap_percentage.btc` | None (public) |
-| Alternative.me (`api.alternative.me/fng`) | Crypto Fear & Greed Index | None (public) |
-| Anthropic API | AI trade verdict via `claude-sonnet-4-5` | `ANTHROPIC_API_KEY` env var |
-| Moralis (`deep-index.moralis.io/api/v2.2`) | Cross-chain wallet history, token transfers, current holdings | `MORALIS_API_KEY` env var |
+| API | Endpoint base | Auth | Usage |
+|-----|--------------|------|-------|
+| GoPlus Security | `api.gopluslabs.io/api/v1` | None | Token security — holders, taxes, risk flags |
+| DEX Screener | `api.dexscreener.com/latest/dex/tokens` | None | Price, liquidity, volume, pair data |
+| CoinGecko | `api.coingecko.com/api/v3` | None | BTC/ETH/SOL prices; BTC dominance |
+| Alternative.me | `api.alternative.me/fng` | None | Fear & Greed Index |
+| Anthropic | `api.anthropic.com` | `ANTHROPIC_API_KEY` | AI trade verdict via `claude-sonnet-4-5` |
+| Moralis | `deep-index.moralis.io/api/v2.2` | `MORALIS_API_KEY` | Cross-chain wallet history, token transfers, holdings |
 
 ---
 
@@ -357,12 +401,12 @@ All panels are collapsible. Panels load data lazily on first open.
 
 ```bash
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...   # optional — enables AI verdict
-export MORALIS_API_KEY=...            # optional — enables whale enrichment + discovery
-python app.py          # starts on http://localhost:8080
+export ANTHROPIC_API_KEY=sk-ant-...   # optional
+export MORALIS_API_KEY=...            # optional
+python app.py                          # http://localhost:8080
 ```
 
-For production:
+Production:
 ```bash
 gunicorn app:app --workers 2
 ```
