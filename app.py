@@ -9,6 +9,7 @@ import whale_profiler
 import team_analyzer
 import wallet_tracker
 import signal_feed
+import market_pulse
 
 app = Flask(__name__)
 
@@ -298,6 +299,8 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
         confidence_score=result["confidence_score"],
     )
 
+    result["market_pulse"] = market_pulse.get_today_snapshot()
+
     return result
 
 
@@ -476,6 +479,23 @@ def whale_profile_route(address):
 def whale_activity():
     limit = min(int(request.args.get("n", 50)), 200)
     return jsonify({"activity": whale_profiler.get_recent_activity(limit)})
+
+
+# ── Market Pulse routes ───────────────────────────────────────────────────
+
+@app.route("/snapshot")
+def snapshot():
+    force = request.args.get("refresh") == "1"
+    try:
+        return jsonify(market_pulse.fetch_snapshot(force=force))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+@app.route("/snapshot/log")
+def snapshot_log():
+    n = min(int(request.args.get("n", 30)), 90)
+    return jsonify({"log": market_pulse.get_log(n)})
 
 
 if __name__ == "__main__":

@@ -1267,6 +1267,84 @@
       margin-top: 2px;
       font-family: 'Courier New', monospace;
     }
+
+    /* ── Market Pulse ──────────────────────────────────────────── */
+    .pulse-stamp {
+      background: rgba(100,116,139,0.06);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pulse-stamp.CLEAR     { background: rgba(34,197,94,0.05);  border-color: rgba(34,197,94,0.2); }
+    .pulse-stamp.DEFENSIVE { background: rgba(239,68,68,0.05);  border-color: rgba(239,68,68,0.2); }
+    .pulse-stamp.CAUTION   { background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.2); }
+
+    .macro-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 5px;
+    }
+    .macro-badge.CLEAR     { background: rgba(34,197,94,0.15);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
+    .macro-badge.DEFENSIVE { background: rgba(239,68,68,0.15);  color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+    .macro-badge.CAUTION   { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+
+    .pulse-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pulse-metric {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .pulse-metric-ticker { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .pulse-metric-val    { font-size: 16px; font-weight: 800; color: var(--text); }
+
+    .pulse-verdict-big {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .pulse-verdict-big.CLEAR     { background: rgba(34,197,94,0.12);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
+    .pulse-verdict-big.DEFENSIVE { background: rgba(239,68,68,0.12);  color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+    .pulse-verdict-big.CAUTION   { background: rgba(245,158,11,0.10); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+
+    .pulse-bar-row   { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .pulse-bar-label { font-size: 11px; color: var(--muted); width: 130px; flex-shrink: 0; }
+    .pulse-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .pulse-bar-fill  { height: 100%; border-radius: 4px; transition: width .4s ease; }
+    .pulse-bar-val   { font-size: 11px; font-weight: 700; width: 80px; text-align: right; flex-shrink: 0; }
+
+    .pulse-hist-hdr { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; margin-top: 18px; }
+    .pulse-hist-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+    .pulse-hist-row:last-child { border-bottom: none; }
+    .pulse-hist-date { color: var(--muted); width: 76px; flex-shrink: 0; }
+    .pulse-hist-meta { flex: 1; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -1315,6 +1393,27 @@
 
     <!-- Result -->
     <div id="result"></div>
+
+    <!-- ── Market Pulse Panel ───────────────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('pulse')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">🌐</span>
+          <div>
+            <div class="mgmt-title">Market Pulse</div>
+            <div class="mgmt-sub" id="pulse-sub">Loading market data…</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="pulse-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="pulse-body" style="display:none">
+        <div id="pulse-body-inner">
+          <div class="no-alerts-msg">Open this panel to load live market data.</div>
+        </div>
+      </div>
+    </div>
 
     <!-- ── Scammer Database Panel ──────────────────────────────── -->
     <div class="mgmt-panel">
@@ -1605,7 +1704,8 @@
     const resultEl = document.getElementById("result");
     const {
       verdict, info, red_findings, yellow_findings, dex,
-      scammer_match, confidence_score, whale_alerts, team_analysis, smart_money
+      scammer_match, confidence_score, whale_alerts, team_analysis, smart_money,
+      market_pulse
     } = data;
     const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
 
@@ -1666,6 +1766,7 @@
       </div>`;
 
     let html = `
+      ${renderMacroPulseStamp(market_pulse)}
       ${scammerHtml}
       ${whaleHtml}
 
@@ -1844,6 +1945,158 @@
     return "$" + n.toPrecision(4);
   }
 
+  // ── Market Pulse ───────────────────────────────────────────────
+  let _currentPulse = null;
+
+  function renderMacroPulseStamp(mp) {
+    if (!mp || !mp.macro_verdict) return "";
+    const v    = mp.macro_verdict;
+    const icon = v === "CLEAR" ? "✅" : v === "DEFENSIVE" ? "🛡️" : "⚠️";
+    const parts = [];
+    if (mp.btc_price    != null) parts.push("BTC $" + Number(mp.btc_price).toLocaleString(undefined, {maximumFractionDigits: 0}));
+    if (mp.eth_price    != null) parts.push("ETH $" + Number(mp.eth_price).toLocaleString(undefined, {maximumFractionDigits: 0}));
+    if (mp.btc_dominance != null) parts.push("DOM " + mp.btc_dominance + "%");
+    if (mp.fear_greed   != null) parts.push("F&amp;G " + mp.fear_greed + " (" + escHtml(mp.fear_greed_label || "") + ")");
+    const dotsep = '<span style="color:var(--border);margin:0 1px">·</span>';
+    return `
+      <div class="pulse-stamp ${escHtml(v)} fade-up">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px">${icon}</span>
+          <span style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.06em">MACRO</span>
+          <span class="macro-badge ${escHtml(v)}">${escHtml(v)}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          ${parts.join(dotsep)}
+        </div>
+      </div>`;
+  }
+
+  async function initMarketPulse() {
+    try {
+      const resp = await fetch("/snapshot");
+      if (!resp.ok) return;
+      _currentPulse = await resp.json();
+      _updatePulseSub(_currentPulse);
+    } catch(e) {}
+  }
+
+  function _updatePulseSub(snap) {
+    const sub = document.getElementById("pulse-sub");
+    if (!sub || !snap || !snap.macro_verdict) return;
+    const v   = snap.macro_verdict;
+    const btc = snap.btc_price != null
+      ? " BTC $" + Number(snap.btc_price).toLocaleString(undefined, {maximumFractionDigits: 0})
+      : "";
+    const fg = snap.fear_greed != null ? " &nbsp;·&nbsp; F&amp;G " + snap.fear_greed : "";
+    sub.innerHTML = `<span class="macro-badge ${escHtml(v)}" style="font-size:8px;padding:2px 6px">${escHtml(v)}</span>${escHtml(btc)}${fg}`;
+  }
+
+  async function loadMarketPulse(refresh = false) {
+    const inner = document.getElementById("pulse-body-inner");
+    inner.innerHTML = '<div class="no-alerts-msg">Fetching market data…</div>';
+    try {
+      const url  = refresh ? "/snapshot?refresh=1" : "/snapshot";
+      const r1   = await fetch(url);
+      if (!r1.ok) throw new Error("API error");
+      const snap = await r1.json();
+      _currentPulse = snap;
+
+      const r2  = await fetch("/snapshot/log?n=14");
+      const log = r2.ok ? (await r2.json()).log || [] : [];
+
+      inner.innerHTML = _renderPulseBody(snap, log);
+      _updatePulseSub(snap);
+    } catch(e) {
+      inner.innerHTML = '<div class="no-alerts-msg">Could not reach market APIs. Try refreshing.</div>';
+    }
+  }
+
+  function _renderPulseBody(snap, log) {
+    if (!snap) return '<div class="no-alerts-msg">No snapshot available.</div>';
+    const v    = snap.macro_verdict || "CAUTION";
+    const icon = v === "CLEAR" ? "✅" : v === "DEFENSIVE" ? "🛡️" : "⚠️";
+
+    const verdictDesc = v === "CLEAR"
+      ? "Open conditions — low BTC dominance and market fear signal altcoin opportunity."
+      : v === "DEFENSIVE"
+      ? "Defensive posture advised — extreme greed or high BTC dominance signals elevated risk."
+      : "Mixed signals — apply standard caution on all scans.";
+
+    const fgPct   = Math.min(100, Math.max(0, snap.fear_greed || 0));
+    const domPct  = Math.min(100, Math.max(0, snap.btc_dominance || 0));
+    const fgColor = fgPct > 75 ? "var(--red)" : fgPct > 45 ? "var(--yellow)" : "var(--green)";
+    const domColor = domPct > 65 ? "var(--red)" : domPct > 55 ? "var(--yellow)" : "var(--green)";
+
+    const tsRaw = snap.timestamp || "";
+    const ts    = tsRaw
+      ? new Date(tsRaw.endsWith("Z") ? tsRaw : tsRaw + "Z").toLocaleString()
+      : "—";
+
+    const solFmt = (snap.sol_price || 0) < 10
+      ? Number(snap.sol_price || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})
+      : Number(snap.sol_price || 0).toLocaleString(undefined, {maximumFractionDigits: 0});
+
+    const histRows = (log || []).map(s => {
+      const sv = s.macro_verdict || "CAUTION";
+      return `
+        <div class="pulse-hist-row">
+          <span class="pulse-hist-date">${escHtml(s.date || "")}</span>
+          <span class="macro-badge ${escHtml(sv)}" style="font-size:8px;padding:2px 6px">${escHtml(sv)}</span>
+          <span class="pulse-hist-meta">
+            DOM ${escHtml(String(s.btc_dominance || "—"))}%
+            &nbsp;·&nbsp; F&amp;G ${escHtml(String(s.fear_greed != null ? s.fear_greed : "—"))}
+            (${escHtml(s.fear_greed_label || "")})
+          </span>
+        </div>`;
+    }).join("");
+
+    return `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div class="pulse-verdict-big ${escHtml(v)}">${icon} ${escHtml(v)}</div>
+        <button class="btn-add" onclick="loadMarketPulse(true)" style="font-size:11px;padding:6px 12px">&#8635; Refresh</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">${escHtml(verdictDesc)}</p>
+
+      <div class="pulse-metrics">
+        <div class="pulse-metric">
+          <div class="pulse-metric-ticker">BTC</div>
+          <div class="pulse-metric-val">$${Number(snap.btc_price || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+        </div>
+        <div class="pulse-metric">
+          <div class="pulse-metric-ticker">ETH</div>
+          <div class="pulse-metric-val">$${Number(snap.eth_price || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+        </div>
+        <div class="pulse-metric">
+          <div class="pulse-metric-ticker">SOL</div>
+          <div class="pulse-metric-val">$${solFmt}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="pulse-bar-row">
+          <span class="pulse-bar-label">Fear &amp; Greed</span>
+          <div class="pulse-bar-track">
+            <div class="pulse-bar-fill" style="width:${fgPct}%;background:${fgColor}"></div>
+          </div>
+          <span class="pulse-bar-val" style="color:${fgColor}">${escHtml(String(snap.fear_greed != null ? snap.fear_greed : "—"))} <small style="font-weight:400;color:var(--muted)">${escHtml(snap.fear_greed_label || "")}</small></span>
+        </div>
+        <div class="pulse-bar-row">
+          <span class="pulse-bar-label">BTC Dominance</span>
+          <div class="pulse-bar-track">
+            <div class="pulse-bar-fill" style="width:${domPct}%;background:${domColor}"></div>
+          </div>
+          <span class="pulse-bar-val" style="color:${domColor}">${escHtml(String(snap.btc_dominance != null ? snap.btc_dominance : "—"))}%</span>
+        </div>
+      </div>
+
+      <p style="font-size:10px;color:var(--muted)">${escHtml("Snapshot: " + ts)}</p>
+
+      ${histRows ? `
+        <div class="pulse-hist-hdr">14-Day History</div>
+        ${histRows}` : ""}
+    `;
+  }
+
   // ── Panel toggles ──────────────────────────────────────────────
   function togglePanel(name) {
     const body    = document.getElementById(name + "-body");
@@ -1851,6 +2104,7 @@
     const isOpen  = body.style.display !== "none";
     body.style.display = isOpen ? "none" : "block";
     chevron.classList.toggle("open", !isOpen);
+    if (!isOpen && name === "pulse")    loadMarketPulse();
     if (!isOpen && name === "sniffer") { refreshSnifferStatus(); loadSnifferAlerts(); }
     if (!isOpen && name === "scammer") loadScammerList();
     if (!isOpen && name === "whale")    { loadWhaleList(); loadWhaleActivity(); }
@@ -2404,6 +2658,7 @@
   });
 
   document.addEventListener("DOMContentLoaded", () => {
+    initMarketPulse();
     loadScammerList();
     loadWhaleList();
     loadSmartWallets();
