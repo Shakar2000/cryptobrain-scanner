@@ -283,9 +283,14 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
         dex_data,
     )
 
-    result["whale_alerts"] = whale_profiler.process_token_scan(
-        contract_address, chain_id, token_data, dex_data
+    result["market_pulse"] = market_pulse.get_today_snapshot()
+
+    _whale_result = whale_profiler.process_token_scan(
+        contract_address, chain_id, token_data, dex_data,
+        macro_pulse=result["market_pulse"],
     )
+    result["whale_alerts"]     = _whale_result["alerts"]
+    result["moby_dick_alerts"] = _whale_result["moby_alerts"]
 
     result["team_analysis"] = team_analyzer.process_token_scan(
         contract_address, chain_id, token_data, dex_data,
@@ -299,8 +304,6 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
         team_score=result["team_analysis"].get("stability_score"),
         confidence_score=result["confidence_score"],
     )
-
-    result["market_pulse"] = market_pulse.get_today_snapshot()
 
     result["brain_verdict"] = ai_analyst.analyze(result)
 
@@ -475,7 +478,16 @@ def whale_profile_route(address):
     profile = whale_profiler.get_profile(address)
     if not profile:
         return jsonify({"error": "Not found"}), 404
-    return jsonify(profile)
+    beh = whale_profiler.get_behavioral_profile(address)
+    return jsonify({**profile, "behavioral_profile": beh})
+
+
+@app.route("/whale/moby/<address>")
+def whale_moby_route(address):
+    beh = whale_profiler.get_behavioral_profile(address)
+    if not beh:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify(beh)
 
 
 @app.route("/whale/activity")

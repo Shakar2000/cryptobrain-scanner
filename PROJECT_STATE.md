@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-06  
 **Branch:** master  
-**Commits:** 7 (initial + 5 feature phases + 1 bugfix)
+**Commits:** 8 (initial + 6 feature phases + 1 bugfix)
 
 ---
 
@@ -17,7 +17,8 @@ multi-layered intelligence report:
 4. **Team Stability** — profiles token creators, scores their contract practices, tracks their deployment history
 5. **Smart Money Signal** — detects pre-registered "smart money" wallets in top holders and scores the signal 1–10
 6. **Market Pulse** — daily macro snapshot (BTC/ETH/SOL prices, BTC dominance, Fear & Greed) with CLEAR/CAUTION/DEFENSIVE verdict stamped on every scan
-7. **AI Analysis Engine** — sends the complete scan data to Claude (claude-sonnet-4-20250514) and returns a structured trade verdict with layer, deploy amount, target price, pull-out amount, stop loss, and 3-sentence reasoning
+7. **AI Analysis Engine** — sends the complete scan data to Claude (claude-sonnet-4-5) and returns a structured trade verdict with layer, deploy amount, target price, pull-out amount, stop loss, and 3-sentence reasoning
+8. **Moby Dick Whale Profiler** — builds full behavioral profiles per tracked whale wallet: Entry/Exit/Shakeout profiles with historical averages and a Pattern Score (UNRELIABLE → EMERGING → RELIABLE → ORACLE); fires a Moby Dick Alert when a whale's new entry conditions match their historical pattern
 
 A background sniffer bot can poll DEX Screener every 5 minutes for new token
 listings and auto-scan them, logging any GREEN verdicts.
@@ -30,28 +31,28 @@ listings and auto-scan them, logging any GREEN verdicts.
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| `app.py` | ~510 | Flask application. Registers all routes. `scan_token()` is the main pipeline. |
+| `app.py` | ~520 | Flask application. Registers all routes. `scan_token()` is the main pipeline. |
 | `scammer_db.py` | 50 | CRUD wrapper around `scammer_db.json`. Blacklist checked against creator/owner on every scan. |
 | `sniffer_bot.py` | 153 | Background daemon. Polls DEX Screener every 5 minutes, auto-scans, logs GREEN verdicts. |
-| `whale_profiler.py` | 229 | Manages `whale_profiles.json`. Tracks user-added wallets; classifies ENTRY/EXIT/INCREASE/DECREASE/DETECTED. |
+| `whale_profiler.py` | ~390 | Manages `whale_profiles.json`. Tracks user-added wallets; classifies ENTRY/EXIT/INCREASE/DECREASE/DETECTED. Phase 6: builds Entry/Exit/Shakeout/Pattern behavioral profiles; fires Moby Dick Alerts. |
 | `team_analyzer.py` | 310 | Manages `team_profiles.json`. Scores creator contract practices 1–10; assigns TRUSTED/CLEAN/NEW/MIXED/SUSPICIOUS/KNOWN SCAMMER reputation. |
 | `wallet_tracker.py` | 113 | Manages `smart_wallets.json`. CRUD for smart money wallet registry; detects in GoPlus holders. |
 | `signal_feed.py` | 198 | Manages `smart_money_signals.json`. Scores smart money hits 1–10; type tags MULTI_WALLET/EARLY_ENTRY/CLEAN_ENTRY/HIGH_CONVICTION. |
 | `market_pulse.py` | 97 | Manages `market_pulse_log.json`. Fetches BTC/ETH/SOL prices (CoinGecko), BTC dominance (CoinGecko /global `market_cap_percentage.btc`), Fear & Greed (Alternative.me). Caches once per day; max 90-day rolling window. |
-| `ai_analyst.py` | ~110 | Calls `claude-sonnet-4-20250514` with the full scan result. Builds a structured prompt, parses the response for verdict/layer/deploy/target/pullout/stop_loss/reasoning. Returns `None` if `ANTHROPIC_API_KEY` not set. |
+| `ai_analyst.py` | ~110 | Calls `claude-sonnet-4-5` with the full scan result. Builds a structured prompt, parses the response for verdict/layer/deploy/target/pullout/stop_loss/reasoning. Returns `None` if `ANTHROPIC_API_KEY` not set. |
 
 ### HTML / templates
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `templates/index.html` | ~2700 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts seven collapsible management panels. |
+| `templates/index.html` | ~2900 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts seven collapsible management panels. |
 
 ### Data files (auto-created, git-tracked)
 
 | File | Purpose |
 |------|---------|
 | `scammer_db.json` | Known bad-actor addresses |
-| `whale_profiles.json` | User-tracked wallet profiles with rolling 100-event activity logs |
+| `whale_profiles.json` | User-tracked wallet profiles with rolling 100-event activity logs + Phase 6 behavioral context fields |
 | `team_profiles.json` | Auto-built creator profiles (rolling 50 tokens per address) |
 | `smart_wallets.json` | Smart money wallet registry with signal counts |
 | `smart_money_signals.json` | Scored signal feed, one record per token (max 500) |
@@ -84,16 +85,17 @@ scammer_db check         → may escalate verdict to RED, sets scammer_match
 calculate_confidence()   → confidence_score  1–10
          │
          ▼
-whale_profiler           → whale_alerts      list of tracked-wallet hits
+market_pulse             → market_pulse      btc/eth/sol prices, dominance, F&G, macro_verdict
+         │                                   (runs FIRST so macro context is available to whale_profiler)
+         ▼
+whale_profiler           → whale_alerts      list of tracked-wallet hits (with moby_dick flag)
+                           moby_dick_alerts  high-conviction pattern-match alerts
          │
          ▼
 team_analyzer            → team_analysis     stability_score, reputation, signals, track_record
          │
          ▼
 signal_feed              → smart_money       has_signal, strength, label, types, wallets, context
-         │
-         ▼
-market_pulse             → market_pulse      btc/eth/sol prices, dominance, F&G, macro_verdict
          │
          ▼
 ai_analyst               → brain_verdict     verdict, layer, deploy, target_price, pullout,
@@ -138,7 +140,8 @@ return full result dict  → serialised as JSON to the browser
 | GET | `/whale/list` | All tracked whale profiles |
 | POST | `/whale/add` | Add wallet. Body: `{ address, label }` |
 | POST | `/whale/remove` | Remove wallet. Body: `{ address }` |
-| GET | `/whale/profile/<address>` | Full profile for one wallet |
+| GET | `/whale/profile/<address>` | Full profile + computed behavioral_profile for one wallet |
+| GET | `/whale/moby/<address>` | Behavioral profile only (entry/exit/shakeout/pattern_score) |
 | GET | `/whale/activity?n=50` | Global activity feed, newest first |
 
 ### Team Analyzer
@@ -231,6 +234,44 @@ Labels: 1–3 = WEAK, 4–5 = MODERATE, 6–7 = STRONG, 8–10 = ULTRA.
 - Pull-out = deployed × 2.5
 - Never GREEN on RED-verdict tokens or KNOWN SCAMMER team
 
+### Moby Dick Behavioral Profile — Pattern Score (0–10)
+
+| Factor | Max pts |
+|--------|---------|
+| Data richness (entries + exits, capped) | 4 |
+| F&G entry consistency (std dev < 15) | 2 |
+| Liquidity entry consistency (CV < 0.4) | 2 |
+| Exit data bonus | 2 |
+
+Grades: 1–3 = UNRELIABLE · 4–5 = EMERGING · 6–7 = RELIABLE · 8–10 = ORACLE
+
+### Moby Dick Alert — match score (0–4)
+
+Fires (score ≥ 3) when the current token matches this whale's historical entry pattern on:
+
+1. Fear & Greed within typical entry range (generous margin)
+2. Liquidity within 5× of typical entry liquidity
+3. Holder count within typical entry range
+4. Market cap within one order of magnitude of typical entry mcap
+
+Requires ≥ 3 prior entry events in the whale's activity log to guard against false positives.
+
+---
+
+## Behavioral profile fields stored per activity event (Phase 6)
+
+Each event in `activity_log` now carries:
+
+| Field | Source |
+|-------|--------|
+| `holder_count` | GoPlus `holder_count` |
+| `market_cap` | DEX Screener `marketCap` or `fdv` |
+| `fear_greed` | Market Pulse snapshot |
+| `btc_dominance` | Market Pulse snapshot |
+| `macro_verdict` | Market Pulse snapshot |
+
+EXIT events additionally carry `entry_price_usd` (from the stored entry record) for exit multiplier calculation.
+
 ---
 
 ## UI panels (index.html)
@@ -240,12 +281,12 @@ All panels are collapsible. Panels load data lazily on first open.
 | Panel | Icon | Function |
 |-------|------|----------|
 | Scan Form | — | Contract address + chain dropdown + Scan button |
-| Result Area | — | Brain Verdict card → Macro Pulse stamp → Scammer banner → Whale banner → Smart Money card → Verdict banner → Token info → DEX data → Findings → Team Stability card |
+| Result Area | — | Brain Verdict → Moby Dick Alert → Macro Pulse stamp → Scammer banner → Whale banner → Smart Money card → Verdict banner → Token info → DEX data → Findings → Team Stability card |
 | Market Pulse | 🌐 | Live BTC/ETH/SOL prices, F&G and dominance bars, macro verdict badge, 14-day history |
 | Scammer Database | 🕵️ | Add/remove known bad actor addresses |
 | Live Token Sniffer | 🤖 | Start/stop background bot; stats + GREEN alert log |
 | Team Profiles | 👥 | Address-filterable list of all auto-profiled creators |
-| Whale Intelligence | 🐋 | Add/remove tracked wallets; activity feed |
+| Whale Intelligence | 🐋 | Add/remove tracked wallets; 🐋 Profile button per wallet shows behavioral profile; activity feed |
 | Smart Money Wallets | 💰 | Add/remove smart money wallets |
 | Smart Money Feed | 💎 | Persistent signal feed across all tokens |
 
@@ -268,7 +309,7 @@ All panels are collapsible. Panels load data lazily on first open.
 | DEX Screener (`api.dexscreener.com`) | Price, liquidity, volume, pair data | None (public) |
 | CoinGecko (`api.coingecko.com`) | BTC/ETH/SOL prices; BTC dominance via `/global` → `market_cap_percentage.btc` | None (public) |
 | Alternative.me (`api.alternative.me/fng`) | Crypto Fear & Greed Index | None (public) |
-| Anthropic API | AI trade verdict via `claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` env var |
+| Anthropic API | AI trade verdict via `claude-sonnet-4-5` | `ANTHROPIC_API_KEY` env var |
 
 ---
 

@@ -1463,6 +1463,81 @@
       letter-spacing: .06em;
       margin-top: 12px;
     }
+
+    /* ── Moby Dick Alert ────────────────────────────────────────── */
+    .moby-alert {
+      background: linear-gradient(135deg, rgba(88,28,135,0.12), rgba(59,130,246,0.08));
+      border: 1px solid rgba(139,92,246,0.45);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      box-shadow: 0 0 28px rgba(139,92,246,0.14);
+    }
+    .moby-icon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+    .moby-title {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: #a78bfa;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .moby-body { font-size: 13px; color: var(--text); }
+    .moby-meta { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+    .moby-meta-item { font-size: 11px; color: var(--muted); }
+    .moby-meta-val  { font-weight: 700; color: var(--text); }
+    .moby-signals   { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+    .moby-signal    { font-size: 11px; color: #c4b5fd; }
+
+    /* ── Whale Behavioral Profile ───────────────────────────────── */
+    .whale-profile-section {
+      border-top: 1px solid var(--border);
+      padding: 14px 4px 4px;
+    }
+    .beh-profile { font-size: 12px; }
+    .beh-header  { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .beh-title   { font-size: 12px; font-weight: 700; color: var(--text); }
+    .beh-grade   { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .beh-score   { font-size: 10px; color: var(--muted); margin-left: auto; }
+    .beh-section-title {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 12px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .beh-count { color: var(--muted); font-weight: 400; }
+    .beh-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; }
+    .beh-row   {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .beh-row-label { color: var(--muted); }
+    .beh-row-val   { font-weight: 600; color: var(--text); text-align: right; }
+    .beh-signals   { display: flex; flex-direction: column; gap: 3px; }
+    .beh-signal    { font-size: 11px; color: #a78bfa; }
+    .beh-signal.muted { color: var(--muted); }
+    .btn-profile {
+      font-size: 13px;
+      background: none;
+      border: 1px solid rgba(139,92,246,0.3);
+      color: #a78bfa;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-profile:hover { background: rgba(139,92,246,0.12); }
   </style>
 </head>
 <body>
@@ -1823,7 +1898,7 @@
     const {
       verdict, info, red_findings, yellow_findings, dex,
       scammer_match, confidence_score, whale_alerts, team_analysis, smart_money,
-      market_pulse, brain_verdict
+      market_pulse, brain_verdict, moby_dick_alerts
     } = data;
     const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
 
@@ -1849,10 +1924,11 @@
       const rows = whale_alerts.map(a => {
         const liq = a.liquidity_usd > 0 ? " · Liq $" + formatNumber(a.liquidity_usd) : "";
         const prc = a.price_usd     > 0 ? " · $"     + formatPrice(a.price_usd)       : "";
+        const mobyBadge = a.moby_dick ? ' <span style="color:#a78bfa;font-size:11px">🐋 MOBY</span>' : "";
         return `<div class="wh-entry-row">
           <span class="ev-badge ${escHtml(a.event_type)}">${escHtml(a.event_type)}</span>
           <strong>${escHtml(a.whale_label)}</strong>
-          — ${escHtml(a.holdings_pct)}% holdings${escHtml(prc + liq)}
+          — ${escHtml(a.holdings_pct)}% holdings${escHtml(prc + liq)}${mobyBadge}
         </div>`;
       }).join("");
       whaleHtml = `
@@ -1885,6 +1961,7 @@
 
     let html = `
       ${renderBrainVerdict(brain_verdict)}
+      ${renderMobyDickAlert(moby_dick_alerts)}
       ${renderMacroPulseStamp(market_pulse)}
       ${scammerHtml}
       ${whaleHtml}
@@ -2129,6 +2206,35 @@
 
         <div class="brain-model-tag">Powered by ${escHtml(bv.model || "Claude")}</div>
       </div>`;
+  }
+
+  // ── Moby Dick Alert ────────────────────────────────────────────
+  function renderMobyDickAlert(moby_alerts) {
+    if (!moby_alerts || moby_alerts.length === 0) return "";
+    return moby_alerts.map(ma => {
+      const signals = (ma.consistent_signals || [])
+        .map(s => `<div class="moby-signal">✓ ${escHtml(s)}</div>`).join("");
+      const multLine = ma.avg_exit_multiplier != null
+        ? `<span class="moby-meta-item">Avg exit: <span class="moby-meta-val">${ma.avg_exit_multiplier}×</span></span>`
+        : "";
+      return `
+        <div class="moby-alert fade-up">
+          <span class="moby-icon">🐋</span>
+          <div style="flex:1">
+            <div class="moby-title">🎯 Moby Dick Pattern Alert</div>
+            <div class="moby-body">
+              <strong>${escHtml(ma.whale_label)}</strong> just entered this token —
+              conditions match their historical entry pattern (${ma.match_score}/4 signals)
+            </div>
+            <div class="moby-meta">
+              <span class="moby-meta-item">Grade: <span class="moby-meta-val">${escHtml(ma.pattern_grade || "—")}</span></span>
+              ${multLine}
+              <span class="moby-meta-item">Holdings: <span class="moby-meta-val">${escHtml(String(ma.holdings_pct))}%</span></span>
+            </div>
+            ${signals ? `<div class="moby-signals">${signals}</div>` : ""}
+          </div>
+        </div>`;
+    }).join("");
   }
 
   // ── Market Pulse ───────────────────────────────────────────────
@@ -2769,6 +2875,7 @@
               ).join(" · ")
             : null;
 
+          const profId = "wprofile-" + addr.replace(/[^a-zA-Z0-9]/g, "_");
           return `
           <div class="whale-item">
             <div class="whale-item-info">
@@ -2781,11 +2888,109 @@
               </div>
               ${holdingStr ? `<div class="whale-item-holdings">Holding: ${holdingStr}</div>` : ""}
             </div>
-            <button class="btn-remove" onclick="removeWhale('${escHtml(addr)}')">✕</button>
-          </div>`;
+            <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0">
+              <button class="btn-remove" onclick="removeWhale('${escHtml(addr)}')">✕</button>
+              <button class="btn-profile" onclick="toggleWhaleProfile('${escHtml(addr)}','${escHtml(profId)}')">🐋 Profile</button>
+            </div>
+          </div>
+          <div id="${escHtml(profId)}" class="whale-profile-section" style="display:none"></div>`;
         }).join("")}
       </div>`;
     } catch(e) {}
+  }
+
+  async function toggleWhaleProfile(addr, profId) {
+    const el = document.getElementById(profId);
+    if (!el) return;
+    const isOpen = el.style.display !== "none";
+    el.style.display = isOpen ? "none" : "block";
+    if (!isOpen && el.dataset.loaded !== "1") {
+      el.dataset.loaded = "1";
+      el.innerHTML = '<div class="no-alerts-msg" style="padding:10px 0">Loading behavioral profile…</div>';
+      try {
+        const resp = await fetch("/whale/moby/" + encodeURIComponent(addr));
+        if (!resp.ok) throw new Error("Not found");
+        const beh = await resp.json();
+        el.innerHTML = renderBehavioralProfile(beh);
+      } catch(e) {
+        el.innerHTML = '<div class="no-alerts-msg" style="padding:10px 0">No behavioral data yet — scan more tokens to build the profile.</div>';
+      }
+    }
+  }
+
+  function renderBehavioralProfile(beh) {
+    if (!beh) return '<div class="no-alerts-msg" style="padding:10px 0">No profile data.</div>';
+    const ep = beh.entry_profile    || {};
+    const xp = beh.exit_profile     || {};
+    const sp = beh.shakeout_profile || {};
+    const ps = beh.pattern_score    || {};
+
+    const grade = ps.grade || "INSUFFICIENT_DATA";
+    const gradeColor = grade === "ORACLE"   ? "var(--accent)" :
+                       grade === "RELIABLE" ? "var(--green)"  :
+                       grade === "EMERGING" ? "var(--yellow)" :
+                                             "var(--muted)";
+
+    const fmtNum  = v  => v  != null ? Number(v).toLocaleString(undefined, {maximumFractionDigits: 0}) : "—";
+    const fmtDollar = v => v != null ? "$" + Number(v).toLocaleString(undefined, {maximumFractionDigits: 0}) : "—";
+    const fmtMult = m  => m  != null ? m + "×" : "—";
+    const fmtDays = d  => d  != null ? d + " days" : "—";
+    const fmtFG   = v  => v  != null ? v + " / 100" : "—";
+    const fmtPct  = v  => v  != null ? v + "%" : "—";
+
+    const dcaDesc = ep.dca_rate != null
+      ? (ep.dca_rate >= 0.5 ? "Often DCA's in (accumulator)" : "Usually one-shot entries")
+      : "—";
+    const stagedDesc = xp.staged_exit_rate != null
+      ? (xp.staged_exit_rate >= 0.5 ? "Staged exits (partial seller)" : "Full position exits")
+      : "—";
+
+    const signalsHtml = (ps.consistent_signals || []).length > 0
+      ? ps.consistent_signals.map(s => `<div class="beh-signal">✓ ${escHtml(s)}</div>`).join("")
+      : '<div class="beh-signal muted">Not enough data — scan more tokens with this wallet tracked</div>';
+
+    const brow = (lbl, val) => `
+      <div class="beh-row">
+        <span class="beh-row-label">${escHtml(lbl)}</span>
+        <span class="beh-row-val">${escHtml(String(val))}</span>
+      </div>`;
+
+    return `
+      <div class="beh-profile">
+        <div class="beh-header">
+          <span style="font-size:14px">🐋</span>
+          <span class="beh-title">Behavioral Profile</span>
+          <span class="beh-grade" style="color:${gradeColor}">${escHtml(grade)}</span>
+          <span class="beh-score">${ps.score || 1} / 10</span>
+        </div>
+
+        <div class="beh-section-title">ENTRY PROFILE <span class="beh-count">(${ep.sample_count || 0} entries)</span></div>
+        <div class="beh-grid">
+          ${brow("Typical Market Cap",  fmtDollar(ep.avg_market_cap))}
+          ${brow("F&G at Entry",        fmtFG(ep.avg_fear_greed))}
+          ${brow("BTC Dom at Entry",    ep.avg_btc_dominance != null ? ep.avg_btc_dominance + "%" : "—")}
+          ${brow("Liquidity at Entry",  fmtDollar(ep.avg_liquidity_usd))}
+          ${brow("Holder Count",        ep.avg_holder_count != null ? fmtNum(ep.avg_holder_count) : "—")}
+          ${brow("Buy Pattern",         dcaDesc)}
+        </div>
+
+        <div class="beh-section-title">EXIT PROFILE <span class="beh-count">(${xp.sample_count || 0} exits)</span></div>
+        <div class="beh-grid">
+          ${brow("Avg Hold Time",        fmtDays(xp.avg_hold_days))}
+          ${brow("Avg Exit Multiplier",  fmtMult(xp.avg_exit_multiplier))}
+          ${brow("Exit Style",           stagedDesc)}
+          ${brow("F&G at Exit",          fmtFG(xp.avg_exit_fg))}
+        </div>
+
+        <div class="beh-section-title">SHAKE-OUT PROFILE <span class="beh-count">(${sp.shakeout_count || 0} detected)</span></div>
+        <div class="beh-grid">
+          ${brow("Avg Dump Depth",    fmtPct(sp.avg_dump_depth_pct))}
+          ${brow("Reaccum Lag",       fmtDays(sp.avg_reaccum_days))}
+        </div>
+
+        <div class="beh-section-title">CONSISTENT SIGNALS</div>
+        <div class="beh-signals">${signalsHtml}</div>
+      </div>`;
   }
 
   async function loadWhaleActivity() {
