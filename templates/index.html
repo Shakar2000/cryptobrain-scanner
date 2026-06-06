@@ -1345,6 +1345,124 @@
     .pulse-hist-row:last-child { border-bottom: none; }
     .pulse-hist-date { color: var(--muted); width: 76px; flex-shrink: 0; }
     .pulse-hist-meta { flex: 1; color: var(--muted); }
+
+    /* ── Brain Verdict (AI Analysis Engine) ───────────────────── */
+    .brain-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brain-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      pointer-events: none;
+      opacity: .08;
+    }
+    .brain-card.GREEN  { border-color: var(--green-border);  box-shadow: 0 0 28px rgba(34,197,94,0.1); }
+    .brain-card.GREEN::before  { background: var(--green); }
+    .brain-card.YELLOW { border-color: var(--yellow-border); box-shadow: 0 0 28px rgba(245,158,11,0.1); }
+    .brain-card.YELLOW::before { background: var(--yellow); }
+    .brain-card.RED    { border-color: var(--red-border);    box-shadow: 0 0 28px rgba(239,68,68,0.1); }
+    .brain-card.RED::before    { background: var(--red); }
+
+    .brain-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .brain-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brain-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .brain-verdict-badge {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 8px;
+    }
+    .brain-verdict-badge.GREEN  { background: rgba(34,197,94,0.15);  color: var(--green);  border: 1px solid rgba(34,197,94,0.35); }
+    .brain-verdict-badge.YELLOW { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.35); }
+    .brain-verdict-badge.RED    { background: rgba(239,68,68,0.12);  color: var(--red);    border: 1px solid rgba(239,68,68,0.35); }
+
+    .brain-layer-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 7px;
+      background: rgba(108,99,255,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(108,99,255,0.3);
+      letter-spacing: .04em;
+    }
+
+    .brain-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 560px) {
+      .brain-metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+    .brain-metric {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 10px;
+      text-align: center;
+    }
+    .brain-metric-label { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .brain-metric-val   { font-size: 14px; font-weight: 800; color: var(--text); }
+    .brain-metric-val.deploy  { color: var(--accent); }
+    .brain-metric-val.target  { color: var(--green); }
+    .brain-metric-val.pullout { color: var(--green); }
+    .brain-metric-val.stop    { color: var(--red); }
+
+    .brain-reasoning {
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: var(--text);
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .brain-reasoning-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .brain-error {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 14px 0 4px;
+    }
+    .brain-model-tag {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: .06em;
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -1705,7 +1823,7 @@
     const {
       verdict, info, red_findings, yellow_findings, dex,
       scammer_match, confidence_score, whale_alerts, team_analysis, smart_money,
-      market_pulse
+      market_pulse, brain_verdict
     } = data;
     const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
 
@@ -1766,6 +1884,7 @@
       </div>`;
 
     let html = `
+      ${renderBrainVerdict(brain_verdict)}
       ${renderMacroPulseStamp(market_pulse)}
       ${scammerHtml}
       ${whaleHtml}
@@ -1943,6 +2062,73 @@
       return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
     }
     return "$" + n.toPrecision(4);
+  }
+
+  // ── Brain Verdict (AI Analysis Engine) ────────────────────────
+  function renderBrainVerdict(bv) {
+    if (!bv) return "";
+
+    if (bv.error && !bv.verdict) {
+      return `
+        <div class="brain-card fade-up">
+          <div class="brain-header">
+            <div class="brain-title-row">
+              <span style="font-size:20px">🧠</span>
+              <span class="brain-label">CryptoBrain AI Verdict</span>
+            </div>
+          </div>
+          <div class="brain-error">AI analysis unavailable: ${escHtml(bv.error)}</div>
+        </div>`;
+    }
+
+    const v   = (bv.verdict || "YELLOW").toUpperCase();
+    const lyr = bv.layer     || "—";
+    const dep = bv.deploy    ? "$" + bv.deploy     : "—";
+    const tgt = bv.target_price ? "$" + bv.target_price : "—";
+    const pul = bv.pullout   ? "$" + bv.pullout    : "—";
+    const sl  = bv.stop_loss ? "$" + bv.stop_loss  : "—";
+
+    const vicon = v === "GREEN" ? "✅" : v === "RED" ? "🚫" : "⚠️";
+
+    return `
+      <div class="brain-card ${escHtml(v)} fade-up">
+        <div class="brain-header">
+          <div class="brain-title-row">
+            <span style="font-size:20px">🧠</span>
+            <span class="brain-label">CryptoBrain AI Verdict</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="brain-verdict-badge ${escHtml(v)}">${vicon} ${escHtml(v)}</span>
+            <span class="brain-layer-badge">Layer ${escHtml(String(lyr))}</span>
+          </div>
+        </div>
+
+        <div class="brain-metrics">
+          <div class="brain-metric">
+            <div class="brain-metric-label">Deploy</div>
+            <div class="brain-metric-val deploy">${escHtml(dep)}</div>
+          </div>
+          <div class="brain-metric">
+            <div class="brain-metric-label">2.5× Target</div>
+            <div class="brain-metric-val target">${escHtml(tgt)}</div>
+          </div>
+          <div class="brain-metric">
+            <div class="brain-metric-label">Pull-Out</div>
+            <div class="brain-metric-val pullout">${escHtml(pul)}</div>
+          </div>
+          <div class="brain-metric">
+            <div class="brain-metric-label">Stop Loss</div>
+            <div class="brain-metric-val stop">${escHtml(sl)}</div>
+          </div>
+        </div>
+
+        <div class="brain-reasoning">
+          <div class="brain-reasoning-label">AI Reasoning</div>
+          ${escHtml(bv.reasoning || "No reasoning provided.")}
+        </div>
+
+        <div class="brain-model-tag">Powered by ${escHtml(bv.model || "Claude")}</div>
+      </div>`;
   }
 
   // ── Market Pulse ───────────────────────────────────────────────

@@ -10,6 +10,7 @@ import team_analyzer
 import wallet_tracker
 import signal_feed
 import market_pulse
+import ai_analyst
 
 app = Flask(__name__)
 
@@ -301,6 +302,8 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
 
     result["market_pulse"] = market_pulse.get_today_snapshot()
 
+    result["brain_verdict"] = ai_analyst.analyze(result)
+
     return result
 
 
@@ -499,5 +502,5 @@ def snapshot_log():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=False)

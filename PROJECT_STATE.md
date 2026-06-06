@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-06  
 **Branch:** master  
-**Commits:** 4 (initial + 3 feature phases)
+**Commits:** 7 (initial + 5 feature phases + 1 bugfix)
 
 ---
 
@@ -16,6 +16,8 @@ multi-layered intelligence report:
 3. **Whale Intelligence** — tracks specific wallets across scans, logs entry/exit events
 4. **Team Stability** — profiles token creators, scores their contract practices, tracks their deployment history
 5. **Smart Money Signal** — detects pre-registered "smart money" wallets in top holders and scores the signal 1–10
+6. **Market Pulse** — daily macro snapshot (BTC/ETH/SOL prices, BTC dominance, Fear & Greed) with CLEAR/CAUTION/DEFENSIVE verdict stamped on every scan
+7. **AI Analysis Engine** — sends the complete scan data to Claude (claude-sonnet-4-20250514) and returns a structured trade verdict with layer, deploy amount, target price, pull-out amount, stop loss, and 3-sentence reasoning
 
 A background sniffer bot can poll DEX Screener every 5 minutes for new token
 listings and auto-scan them, logging any GREEN verdicts.
@@ -28,37 +30,39 @@ listings and auto-scan them, logging any GREEN verdicts.
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| `app.py` | 483 | Flask application. Registers all routes. `scan_token()` is the main pipeline: fetches GoPlus + DEX Screener in parallel, runs analysis, then calls all four intelligence modules in sequence. |
-| `scammer_db.py` | 50 | CRUD wrapper around `scammer_db.json`. Blacklist of known bad actor addresses; checked against creator/owner on every scan. |
-| `sniffer_bot.py` | 153 | Background daemon (daemon thread). Polls `dexscreener.com/token-profiles/latest/v1` every 5 minutes, auto-scans new addresses, appends GREEN verdicts to `green_alerts.txt`. |
-| `whale_profiler.py` | 229 | Manages `whale_profiles.json`. Tracks any user-added wallet across scans. Classifies observations as ENTRY / EXIT / INCREASE / DECREASE / DETECTED. Provides a global activity feed sorted by timestamp. |
-| `team_analyzer.py` | 310 | Manages `team_profiles.json`. Auto-profiles every token creator on each scan. Scores contract practices 1–10 across six signals (source verification, LP lock, creator concentration, ownership status, mintability, balance manipulation). Assigns reputation: NEW / CLEAN / TRUSTED / MIXED / SUSPICIOUS / KNOWN SCAMMER. |
-| `wallet_tracker.py` | 113 | Manages `smart_wallets.json`. CRUD for the "smart money" wallet registry. `detect_in_scan()` cross-references GoPlus top holders against the registry. `bump_signal_count()` increments per-wallet signal counters after each hit. |
-| `signal_feed.py` | 198 | Manages `smart_money_signals.json`. `process_token_scan()` calls `wallet_tracker.detect_in_scan()`, then `_score()` weights five factors to produce a 1–10 strength score, a label (WEAK / MODERATE / STRONG / ULTRA), and type tags (MULTI_WALLET, EARLY_ENTRY, CLEAN_ENTRY, HIGH_CONVICTION). Upserts one signal record per token (rolling window of 500). |
+| `app.py` | ~510 | Flask application. Registers all routes. `scan_token()` is the main pipeline. |
+| `scammer_db.py` | 50 | CRUD wrapper around `scammer_db.json`. Blacklist checked against creator/owner on every scan. |
+| `sniffer_bot.py` | 153 | Background daemon. Polls DEX Screener every 5 minutes, auto-scans, logs GREEN verdicts. |
+| `whale_profiler.py` | 229 | Manages `whale_profiles.json`. Tracks user-added wallets; classifies ENTRY/EXIT/INCREASE/DECREASE/DETECTED. |
+| `team_analyzer.py` | 310 | Manages `team_profiles.json`. Scores creator contract practices 1–10; assigns TRUSTED/CLEAN/NEW/MIXED/SUSPICIOUS/KNOWN SCAMMER reputation. |
+| `wallet_tracker.py` | 113 | Manages `smart_wallets.json`. CRUD for smart money wallet registry; detects in GoPlus holders. |
+| `signal_feed.py` | 198 | Manages `smart_money_signals.json`. Scores smart money hits 1–10; type tags MULTI_WALLET/EARLY_ENTRY/CLEAN_ENTRY/HIGH_CONVICTION. |
+| `market_pulse.py` | 97 | Manages `market_pulse_log.json`. Fetches BTC/ETH/SOL prices (CoinGecko), BTC dominance (CoinGecko /global `market_cap_percentage.btc`), Fear & Greed (Alternative.me). Caches once per day; max 90-day rolling window. |
+| `ai_analyst.py` | ~110 | Calls `claude-sonnet-4-20250514` with the full scan result. Builds a structured prompt, parses the response for verdict/layer/deploy/target/pullout/stop_loss/reasoning. Returns `None` if `ANTHROPIC_API_KEY` not set. |
 
 ### HTML / templates
 
 | File | Lines | Purpose |
-|------|------:|---------|
-| `templates/index.html` | 2415 | Single-page UI. Dark theme, no external frameworks. Vanilla JS with `fetch()`. Renders all scan result cards and hosts six collapsible management panels. |
+|------|-------|---------|
+| `templates/index.html` | ~2700 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts seven collapsible management panels. |
 
 ### Data files (auto-created, git-tracked)
 
 | File | Purpose |
 |------|---------|
-| `scammer_db.json` | Known bad-actor addresses `{ address: { label, added } }` |
+| `scammer_db.json` | Known bad-actor addresses |
 | `whale_profiles.json` | User-tracked wallet profiles with rolling 100-event activity logs |
-| `team_profiles.json` | Auto-built creator profiles with per-verdict token history (rolling 50 tokens) |
+| `team_profiles.json` | Auto-built creator profiles (rolling 50 tokens per address) |
 | `smart_wallets.json` | Smart money wallet registry with signal counts |
-| `smart_money_signals.json` | Scored signal feed, one record per token, newest first (max 500) |
-| `green_alerts.txt` | Plain-text log appended by the sniffer bot for GREEN verdicts |
+| `smart_money_signals.json` | Scored signal feed, one record per token (max 500) |
+| `market_pulse_log.json` | Daily macro snapshots, newest first (max 90 days) |
 
 ### Deployment / config
 
 | File | Purpose |
 |------|---------|
 | `Procfile` | Heroku: `web: gunicorn app:app --workers 2` |
-| `requirements.txt` | `Flask`, `requests`, `gunicorn` |
+| `requirements.txt` | `Flask`, `requests`, `gunicorn`, `anthropic` |
 | `README.md` | Usage guide |
 
 ---
@@ -89,6 +93,13 @@ team_analyzer            → team_analysis     stability_score, reputation, sign
 signal_feed              → smart_money       has_signal, strength, label, types, wallets, context
          │
          ▼
+market_pulse             → market_pulse      btc/eth/sol prices, dominance, F&G, macro_verdict
+         │
+         ▼
+ai_analyst               → brain_verdict     verdict, layer, deploy, target_price, pullout,
+                                             stop_loss, reasoning (Claude API — skipped if no key)
+         │
+         ▼
 return full result dict  → serialised as JSON to the browser
 ```
 
@@ -101,7 +112,7 @@ return full result dict  → serialised as JSON to the browser
 | Method | Route | Description |
 |--------|-------|-------------|
 | GET | `/` | Serve `index.html` |
-| POST | `/scan` | Full token scan. Body: `{ contract_address, chain }`. Returns the complete result dict. |
+| POST | `/scan` | Full token scan. Body: `{ contract_address, chain }`. Returns complete result dict. |
 
 ### Scammer Database
 
@@ -147,6 +158,13 @@ return full result dict  → serialised as JSON to the browser
 | POST | `/smartwallet/add` | Add wallet. Body: `{ address, label, category }` |
 | POST | `/smartwallet/remove` | Remove wallet. Body: `{ address }` |
 
+### Market Pulse
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/snapshot` | Today's macro snapshot (fetches fresh if not cached; `?refresh=1` to force) |
+| GET | `/snapshot/log?n=30` | Historical daily snapshots, newest first |
+
 ---
 
 ## Scoring systems
@@ -191,25 +209,54 @@ Reputation: NEW → CLEAN → TRUSTED (clean track record) or MIXED → SUSPICIO
 | Verdict RED | −2 |
 | Team stability ≥ 7 | +1 |
 
-Labels: 1–3 = WEAK, 4–5 = MODERATE, 6–7 = STRONG, 8–10 = ULTRA.  
-ULTRA signals trigger a pulsing gold glow animation in the UI.
+Labels: 1–3 = WEAK, 4–5 = MODERATE, 6–7 = STRONG, 8–10 = ULTRA.
+
+### Market Pulse macro verdict
+
+| Condition | Verdict |
+|-----------|---------|
+| BTC dom > 65% OR Fear & Greed > 80 | DEFENSIVE |
+| BTC dom < 60% AND Fear & Greed < 40 | CLEAR |
+| Everything else | CAUTION |
+
+### AI Brain Verdict — $300 capital rules
+
+| Layer | Conviction | Deploy | Stop Loss |
+|-------|-----------|--------|-----------|
+| 1 | Moderate | $30 | −15% |
+| 2 | Strong | $60 | −20% |
+| 3 | Ultra | $90 | −25% |
+
+- Target is always 2.5× entry price
+- Pull-out = deployed × 2.5
+- Never GREEN on RED-verdict tokens or KNOWN SCAMMER team
 
 ---
 
 ## UI panels (index.html)
 
-All panels are collapsible. Panels load their data lazily on first open.
+All panels are collapsible. Panels load data lazily on first open.
 
 | Panel | Icon | Function |
 |-------|------|----------|
 | Scan Form | — | Contract address + chain dropdown + Scan button |
-| Result Area | — | Dynamically rendered: scammer banner, whale banner, Smart Money card, verdict banner, token info grid, DEX market data, findings, Team Stability card |
-| Scammer Database | 🕵️ | Add/remove known bad actor addresses; auto-checked on every scan |
-| Live Token Sniffer | 🤖 | Start/stop background bot; stats + recent GREEN alert log |
-| Team Profiles | 👥 | Address-filterable list of all auto-profiled creators; reputation badges + verdict breakdown |
-| Whale Intelligence | 🐋 | Add/remove tracked wallets; whale cards with entry/exit counts and current holdings; global activity feed |
-| Smart Money Wallets | 💰 | Add/remove smart money wallets; per-wallet signal counts |
-| Smart Money Feed | 💎 | Persistent signal feed across all tokens; strength badge + wallet names + chain/holder/liq meta |
+| Result Area | — | Brain Verdict card → Macro Pulse stamp → Scammer banner → Whale banner → Smart Money card → Verdict banner → Token info → DEX data → Findings → Team Stability card |
+| Market Pulse | 🌐 | Live BTC/ETH/SOL prices, F&G and dominance bars, macro verdict badge, 14-day history |
+| Scammer Database | 🕵️ | Add/remove known bad actor addresses |
+| Live Token Sniffer | 🤖 | Start/stop background bot; stats + GREEN alert log |
+| Team Profiles | 👥 | Address-filterable list of all auto-profiled creators |
+| Whale Intelligence | 🐋 | Add/remove tracked wallets; activity feed |
+| Smart Money Wallets | 💰 | Add/remove smart money wallets |
+| Smart Money Feed | 💎 | Persistent signal feed across all tokens |
+
+---
+
+## Environment variables
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `ANTHROPIC_API_KEY` | Optional | Enables AI Analysis Engine (Phase 5). If absent, `brain_verdict` is `null` and the Brain Verdict card is silently skipped. |
+| `PORT` | Optional | HTTP port (default 8080) |
 
 ---
 
@@ -217,8 +264,11 @@ All panels are collapsible. Panels load their data lazily on first open.
 
 | API | Usage | Auth required |
 |-----|-------|--------------|
-| GoPlus Security (`api.gopluslabs.io`) | Token security data — all holder, tax, risk flags | None (public) |
+| GoPlus Security (`api.gopluslabs.io`) | Token security data — holders, tax, risk flags | None (public) |
 | DEX Screener (`api.dexscreener.com`) | Price, liquidity, volume, pair data | None (public) |
+| CoinGecko (`api.coingecko.com`) | BTC/ETH/SOL prices; BTC dominance via `/global` → `market_cap_percentage.btc` | None (public) |
+| Alternative.me (`api.alternative.me/fng`) | Crypto Fear & Greed Index | None (public) |
+| Anthropic API | AI trade verdict via `claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` env var |
 
 ---
 
@@ -226,7 +276,8 @@ All panels are collapsible. Panels load their data lazily on first open.
 
 ```bash
 pip install -r requirements.txt
-python app.py          # starts on http://localhost:5000
+export ANTHROPIC_API_KEY=sk-ant-...   # optional — enables AI verdict
+python app.py          # starts on http://localhost:8080
 ```
 
 For production:
