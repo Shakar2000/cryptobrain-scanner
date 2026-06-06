@@ -500,7 +500,9 @@ def whale_activity():
 @app.route("/whale/enrich/<address>", methods=["POST"])
 def whale_enrich_route(address):
     data   = request.get_json(force=True) or {}
-    chains = data.get("chains")  # optional list of chain strings
+    # Optional: pass {"chains": ["0x38","0x1","0x2105"]} to override.
+    # Defaults to moralis_client.ENRICH_CHAINS (BSC → ETH → Base).
+    chains = data.get("chains") or None
     result = moralis_client.enrich_whale_profile(address, chains)
     code   = 200 if not result.get("error") else 502
     return jsonify(result), code

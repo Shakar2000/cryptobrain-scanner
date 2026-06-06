@@ -5,13 +5,25 @@ import requests
 BASE_URL = "https://deep-index.moralis.io/api/v2.2"
 
 CHAINS        = ["eth", "bsc", "base", "polygon"]
-CHAIN_ID_MAP  = {"eth": "1", "bsc": "56", "base": "8453", "polygon": "137"}
-CHAIN_NAME_MAP = {
-    "eth":     "Ethereum",
-    "bsc":     "BNB Chain",
-    "base":    "Base",
-    "polygon": "Polygon",
+
+# Moralis hex chain IDs (used as the `chain` query parameter)
+# and their human-readable / decimal equivalents
+CHAIN_ID_MAP = {
+    "eth":    "1",    "0x1":    "1",
+    "bsc":    "56",   "0x38":   "56",
+    "base":   "8453", "0x2105": "8453",
+    "polygon":"137",  "0x89":   "137",
 }
+CHAIN_NAME_MAP = {
+    "eth":    "Ethereum", "0x1":    "Ethereum",
+    "bsc":    "BNB Chain","0x38":   "BNB Chain",
+    "base":   "Base",     "0x2105": "Base",
+    "polygon":"Polygon",  "0x89":   "Polygon",
+}
+
+# Default chain order for wallet enrichment: BSC first (most meme-coin activity),
+# then ETH, then Base.  Polygon omitted by default to limit latency.
+ENRICH_CHAINS = ["0x38", "0x1", "0x2105"]
 
 _MAX_DISCOVERY_PAGES = 5   # max pages when collecting token transfers for discovery
 _NULL_ADDR = "0x0000000000000000000000000000000000000000"
@@ -89,7 +101,7 @@ def enrich_whale_profile(whale_address, chains=None):
         return {"added": 0, "chains_scanned": [], "error": "Wallet not in whale database"}
 
     if chains is None:
-        chains = CHAINS
+        chains = ENRICH_CHAINS  # BSC → ETH → Base
 
     new_events     = []
     chains_scanned = []
