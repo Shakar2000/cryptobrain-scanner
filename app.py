@@ -1,4 +1,5 @@
 import os
+import threading
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, render_template, request, jsonify
@@ -462,7 +463,15 @@ def whale_add():
     label   = (data.get("label")   or "").strip()
     if not address:
         return jsonify({"ok": False, "error": "Address required"}), 400
-    return jsonify(whale_profiler.add_whale(address, label))
+    result = whale_profiler.add_whale(address, label)
+    if result.get("ok") and moralis_client.is_available():
+        threading.Thread(
+            target=moralis_client.enrich_whale_profile,
+            args=(address,),
+            daemon=True,
+        ).start()
+        result["enriching"] = True
+    return jsonify(result)
 
 
 @app.route("/whale/remove", methods=["POST"])

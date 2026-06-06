@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-06  
 **Branch:** master  
-**Commits:** 9 (initial + 7 feature phases + 1 bugfix)
+**Commits:** 10 (initial + 7 feature phases + 1 bugfix + 1 UX improvement)
 
 ---
 
@@ -145,7 +145,7 @@ return full result dict  → serialised as JSON to the browser
 | GET | `/whale/profile/<address>` | Full profile + computed behavioral_profile for one wallet |
 | GET | `/whale/moby/<address>` | Behavioral profile only (entry/exit/shakeout/pattern_score) |
 | GET | `/whale/activity?n=50` | Global activity feed, newest first |
-| POST | `/whale/enrich/<address>` | Trigger Moralis cross-chain enrichment for a tracked whale. Body: `{ chains: ["eth","bsc",...] }` (optional — defaults to all 4 chains). |
+| POST | `/whale/enrich/<address>` | Trigger Moralis cross-chain enrichment for a tracked whale. Body: `{ chains: ["0x38","0x1","0x2105"] }` (optional — defaults to `ENRICH_CHAINS`). Called automatically by `/whale/add` when `MORALIS_API_KEY` is set. |
 | POST | `/whale/discover` | Discover early buyers of a token. Body: `{ token_address, chain, auto_add }`. Scores candidates 1-10, auto-adds ≥7 to whale DB. |
 
 ### Team Analyzer
@@ -324,7 +324,7 @@ All panels are collapsible. Panels load data lazily on first open.
 | Scammer Database | 🕵️ | Add/remove known bad actor addresses |
 | Live Token Sniffer | 🤖 | Start/stop background bot; stats + GREEN alert log |
 | Team Profiles | 👥 | Address-filterable list of all auto-profiled creators |
-| Whale Intelligence | 🐋 | Add/remove tracked wallets; ⚡ Enrich button (Moralis cross-chain history); 🐋 Profile button (behavioral profile); activity feed; 🔍 Discover Whales (token → scored early buyers → auto-add ≥7 to DB) |
+| Whale Intelligence | 🐋 | Add/remove tracked wallets; tracking auto-triggers Moralis enrichment (BSC → ETH → Base) with spinner while running; 🐋 Profile button (behavioral profile); activity feed; 🔍 Discover Whales (token → scored early buyers → auto-add ≥7 to DB) |
 | Smart Money Wallets | 💰 | Add/remove smart money wallets |
 | Smart Money Feed | 💎 | Persistent signal feed across all tokens |
 
