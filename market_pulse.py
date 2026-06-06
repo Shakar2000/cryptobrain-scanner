@@ -56,14 +56,14 @@ def _fetch_fresh():
     btc_price = float(prices.get("bitcoin",  {}).get("usd", 0))
     eth_price = float(prices.get("ethereum", {}).get("usd", 0))
     sol_price = float(prices.get("solana",   {}).get("usd", 0))
-    btc_dom   = float(global_data.get("btc_dominance", 0))
+    btc_dom   = float(global_data.get("market_cap_percentage", {}).get("btc", 0))
     fg_value  = int(fg_entry.get("value", 50))
     fg_label  = fg_entry.get("value_classification", "Neutral")
 
     now = datetime.now(timezone.utc)
     return {
         "date":             now.strftime("%Y-%m-%d"),
-        "timestamp":        now.isoformat(),
+        "timestamp":        now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "btc_price":        btc_price,
         "eth_price":        eth_price,
         "sol_price":        sol_price,
