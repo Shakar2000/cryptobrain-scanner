@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify
 
 import scammer_db
 import sniffer_bot
+import whale_profiler
 
 app = Flask(__name__)
 
@@ -277,6 +278,10 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
         dex_data,
     )
 
+    result["whale_alerts"] = whale_profiler.process_token_scan(
+        contract_address, chain_id, token_data, dex_data
+    )
+
     return result
 
 
@@ -356,6 +361,46 @@ def sniffer_status():
 def sniffer_alerts():
     n = min(int(request.args.get("n", 20)), 100)
     return jsonify({"alerts": sniffer_bot.recent_alerts(n)})
+
+
+# ── Whale Profiler routes ─────────────────────────────────────────────────
+
+@app.route("/whale/list")
+def whale_list():
+    return jsonify(list(whale_profiler.list_whales().values()))
+
+
+@app.route("/whale/add", methods=["POST"])
+def whale_add():
+    data    = request.get_json(force=True)
+    address = (data.get("address") or "").strip()
+    label   = (data.get("label")   or "").strip()
+    if not address:
+        return jsonify({"ok": False, "error": "Address required"}), 400
+    return jsonify(whale_profiler.add_whale(address, label))
+
+
+@app.route("/whale/remove", methods=["POST"])
+def whale_remove():
+    data    = request.get_json(force=True)
+    address = (data.get("address") or "").strip()
+    if not address:
+        return jsonify({"ok": False, "error": "Address required"}), 400
+    return jsonify(whale_profiler.remove_whale(address))
+
+
+@app.route("/whale/profile/<address>")
+def whale_profile_route(address):
+    profile = whale_profiler.get_profile(address)
+    if not profile:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify(profile)
+
+
+@app.route("/whale/activity")
+def whale_activity():
+    limit = min(int(request.args.get("n", 50)), 200)
+    return jsonify({"activity": whale_profiler.get_recent_activity(limit)})
 
 
 if __name__ == "__main__":

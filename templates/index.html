@@ -725,6 +725,177 @@
       .sniffer-top { flex-direction: column; }
       .scammer-add-row { flex-direction: column; }
     }
+
+    /* ── Whale Intelligence ──────────────────────────────────── */
+    :root {
+      --whale:        #3b82f6;
+      --whale-bg:     rgba(59, 130, 246, 0.08);
+      --whale-border: rgba(59, 130, 246, 0.35);
+      --whale-glow:   rgba(59, 130, 246, 0.4);
+    }
+
+    /* Whale alert banner inside scan results */
+    .whale-scan-alert {
+      background: var(--whale-bg);
+      border: 1.5px solid var(--whale-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .whale-scan-alert .wh-icon { font-size: 26px; flex-shrink: 0; }
+
+    .whale-scan-alert .wh-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--whale);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .whale-scan-alert .wh-list { margin-top: 6px; display: flex; flex-direction: column; gap: 5px; }
+
+    .wh-entry-row {
+      font-size: 12px;
+      color: rgba(147, 197, 253, 0.9);
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Event type badges */
+    .ev-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .ev-badge.ENTRY    { background: rgba(34,197,94,0.15);  color: var(--green);  border: 1px solid rgba(34,197,94,0.35); }
+    .ev-badge.EXIT     { background: rgba(239,68,68,0.15);  color: var(--red);    border: 1px solid rgba(239,68,68,0.35); }
+    .ev-badge.INCREASE { background: rgba(74,222,128,0.12); color: #4ade80;       border: 1px solid rgba(74,222,128,0.3); }
+    .ev-badge.DECREASE { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .ev-badge.DETECTED { background: rgba(100,116,139,0.1); color: var(--muted);  border: 1px solid var(--border); }
+
+    /* Whale list items in the panel */
+    .whale-list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .whale-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--whale);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .whale-item-info { flex: 1; min-width: 0; }
+
+    .whale-item-label {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .whale-item-addr {
+      font-family: 'Courier New', monospace;
+      color: var(--muted);
+      font-size: 11px;
+      word-break: break-all;
+      margin-top: 2px;
+    }
+
+    .whale-item-stats {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .whale-stat-entry { color: var(--green); font-weight: 700; }
+    .whale-stat-exit  { color: var(--red);   font-weight: 700; }
+
+    .whale-item-holdings {
+      font-size: 11px;
+      color: rgba(147, 197, 253, 0.8);
+      margin-top: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Activity feed items */
+    .whale-feed-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .whale-feed-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+
+    .whale-feed-item.ev-ENTRY    { border-left: 3px solid var(--green); }
+    .whale-feed-item.ev-EXIT     { border-left: 3px solid var(--red); }
+    .whale-feed-item.ev-INCREASE { border-left: 3px solid #4ade80; }
+    .whale-feed-item.ev-DECREASE { border-left: 3px solid var(--yellow); }
+    .whale-feed-item.ev-DETECTED { border-left: 3px solid var(--border); }
+
+    .whale-feed-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .whale-feed-label {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .whale-feed-time {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .whale-feed-body {
+      color: var(--text);
+      margin-top: 3px;
+      font-size: 12px;
+    }
+
+    .whale-feed-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+      font-family: 'Courier New', monospace;
+    }
   </style>
 </head>
 <body>
@@ -850,6 +1021,59 @@
       </div>
     </div>
 
+    <!-- ── Whale Intelligence Panel ──────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('whale')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">🐋</span>
+          <div>
+            <div class="mgmt-title">Whale Intelligence</div>
+            <div class="mgmt-sub" id="whale-sub">Loading…</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="whale-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="whale-body" style="display:none">
+        <!-- Add whale form -->
+        <div class="scammer-add-row">
+          <input
+            id="whale-addr"
+            type="text"
+            placeholder="Wallet address to track"
+            autocomplete="off"
+            spellcheck="false"
+            onkeydown="if(event.key==='Enter') addWhale()"
+          />
+          <input
+            id="whale-label"
+            type="text"
+            placeholder="Label (e.g. Smart Money #1)"
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter') addWhale()"
+          />
+          <button class="btn-add" onclick="addWhale()">+ Track</button>
+        </div>
+
+        <!-- Tracked whales list -->
+        <div id="whale-list-wrap">
+          <div class="empty-list">No wallets tracked yet. Add an address above to begin profiling.</div>
+        </div>
+
+        <!-- Activity feed -->
+        <div style="margin-top:18px">
+          <div class="alerts-header-row">
+            <span class="alerts-section-label">Whale Activity Feed</span>
+            <button class="btn-refresh" onclick="loadWhaleActivity()">↻ Refresh</button>
+          </div>
+          <div class="whale-feed-wrap" id="whale-activity-feed">
+            <div class="no-alerts-msg">Activity appears here as tokens are scanned.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -915,7 +1139,7 @@
     const resultEl = document.getElementById("result");
     const {
       verdict, info, red_findings, yellow_findings, dex,
-      scammer_match, confidence_score
+      scammer_match, confidence_score, whale_alerts
     } = data;
     const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
 
@@ -931,6 +1155,28 @@
               <strong>${escHtml(scammer_match.label)}</strong><br>
               ${escHtml(scammer_match.address)}
             </div>
+          </div>
+        </div>`;
+    }
+
+    // ── Whale alert banner ───────────────────────────────────────
+    let whaleHtml = "";
+    if (whale_alerts && whale_alerts.length > 0) {
+      const rows = whale_alerts.map(a => {
+        const liq = a.liquidity_usd > 0 ? " · Liq $" + formatNumber(a.liquidity_usd) : "";
+        const prc = a.price_usd     > 0 ? " · $"     + formatPrice(a.price_usd)       : "";
+        return `<div class="wh-entry-row">
+          <span class="ev-badge ${escHtml(a.event_type)}">${escHtml(a.event_type)}</span>
+          <strong>${escHtml(a.whale_label)}</strong>
+          — ${escHtml(a.holdings_pct)}% holdings${escHtml(prc + liq)}
+        </div>`;
+      }).join("");
+      whaleHtml = `
+        <div class="whale-scan-alert fade-up">
+          <span class="wh-icon">🐋</span>
+          <div style="flex:1">
+            <div class="wh-title">Whale Intelligence — ${whale_alerts.length} Tracked Wallet${whale_alerts.length > 1 ? "s" : ""} Detected</div>
+            <div class="wh-list">${rows}</div>
           </div>
         </div>`;
     }
@@ -955,6 +1201,7 @@
 
     let html = `
       ${scammerHtml}
+      ${whaleHtml}
 
       <!-- Verdict Banner -->
       <div class="verdict-banner ${verdict} fade-up">
@@ -1136,6 +1383,7 @@
     chevron.classList.toggle("open", !isOpen);
     if (!isOpen && name === "sniffer") { refreshSnifferStatus(); loadSnifferAlerts(); }
     if (!isOpen && name === "scammer") loadScammerList();
+    if (!isOpen && name === "whale")   { loadWhaleList(); loadWhaleActivity(); }
   }
 
   // ── Sniffer Bot ────────────────────────────────────────────────
@@ -1241,6 +1489,135 @@
     } catch(e) {}
   }
 
+  // ── Whale Intelligence ─────────────────────────────────────────
+  async function addWhale() {
+    const addr  = document.getElementById("whale-addr").value.trim();
+    const label = document.getElementById("whale-label").value.trim();
+    if (!addr) return;
+    const resp = await fetch("/whale/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr, label }),
+    });
+    const result = await resp.json();
+    if (result.ok) {
+      document.getElementById("whale-addr").value  = "";
+      document.getElementById("whale-label").value = "";
+    }
+    loadWhaleList();
+  }
+
+  async function removeWhale(addr) {
+    await fetch("/whale/remove", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr }),
+    });
+    loadWhaleList();
+    loadWhaleActivity();
+  }
+
+  async function loadWhaleList() {
+    try {
+      const resp   = await fetch("/whale/list");
+      const whales = await resp.json();
+      const sub    = document.getElementById("whale-sub");
+      const wrap   = document.getElementById("whale-list-wrap");
+
+      sub.textContent = whales.length + " wallet" + (whales.length === 1 ? "" : "s") + " tracked";
+
+      if (whales.length === 0) {
+        wrap.innerHTML = '<div class="empty-list">No wallets tracked yet. Add an address above to begin profiling.</div>';
+        return;
+      }
+
+      wrap.innerHTML = `<div class="whale-list-wrap">
+        ${whales.map(w => {
+          const addr = w.address || "";
+          const shortAddr = addr.length > 16
+            ? addr.slice(0, 10) + "…" + addr.slice(-6)
+            : addr;
+
+          const lastAct = w.last_activity
+            ? timeAgo(w.last_activity)
+            : "never";
+
+          const holdings = Object.values(w.current_holdings || {});
+          const holdingStr = holdings.length > 0
+            ? holdings.slice(0, 3).map(h =>
+                escHtml(h.token_symbol || h.token_name) + " (" + (h.last_holdings_pct || 0) + "%)"
+              ).join(" · ")
+            : null;
+
+          return `
+          <div class="whale-item">
+            <div class="whale-item-info">
+              <div class="whale-item-label">${escHtml(w.label || "")}</div>
+              <div class="whale-item-addr">${escHtml(shortAddr)}</div>
+              <div class="whale-item-stats">
+                <span class="whale-stat-entry">↗ ${w.entry_count || 0} entr${(w.entry_count || 0) === 1 ? "y" : "ies"}</span>
+                <span class="whale-stat-exit">↘ ${w.exit_count || 0} exit${(w.exit_count || 0) === 1 ? "" : "s"}</span>
+                <span>· Last: ${escHtml(lastAct)}</span>
+              </div>
+              ${holdingStr ? `<div class="whale-item-holdings">Holding: ${holdingStr}</div>` : ""}
+            </div>
+            <button class="btn-remove" onclick="removeWhale('${escHtml(addr)}')">✕</button>
+          </div>`;
+        }).join("")}
+      </div>`;
+    } catch(e) {}
+  }
+
+  async function loadWhaleActivity() {
+    try {
+      const resp = await fetch("/whale/activity?n=30");
+      const { activity } = await resp.json();
+      const el = document.getElementById("whale-activity-feed");
+
+      if (!activity || activity.length === 0) {
+        el.innerHTML = '<div class="no-alerts-msg">Activity appears here as tokens are scanned.</div>';
+        return;
+      }
+
+      el.innerHTML = activity.map(ev => {
+        const prc = ev.price_usd     > 0 ? "$" + formatPrice(ev.price_usd)       : null;
+        const liq = ev.liquidity_usd > 0 ? "Liq $" + formatNumber(ev.liquidity_usd) : null;
+        const sub = [prc, liq].filter(Boolean).join(" · ");
+
+        let bodyText = "";
+        if (ev.event_type === "EXIT") {
+          const entryPrc = ev.entry_price_usd > 0 ? " (entry $" + formatPrice(ev.entry_price_usd) + ")" : "";
+          bodyText = `Exited ${escHtml(ev.token_name)} (${escHtml(ev.token_symbol)})${escHtml(entryPrc)}`;
+        } else {
+          bodyText = `${escHtml(ev.token_name)} (${escHtml(ev.token_symbol)}) — ${ev.holdings_pct}% holdings`;
+        }
+
+        return `
+          <div class="whale-feed-item ev-${escHtml(ev.event_type)}">
+            <div class="whale-feed-top">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="ev-badge ${escHtml(ev.event_type)}">${escHtml(ev.event_type)}</span>
+                <span class="whale-feed-label">${escHtml(ev.whale_label)}</span>
+              </div>
+              <span class="whale-feed-time">${timeAgo(ev.timestamp)}</span>
+            </div>
+            <div class="whale-feed-body">${bodyText}</div>
+            ${sub ? `<div class="whale-feed-sub">${escHtml(sub)} · ${escHtml(ev.chain || "")}</div>` : ""}
+          </div>`;
+      }).join("");
+    } catch(e) {}
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return "—";
+    const diff = Date.now() - new Date(iso.endsWith("Z") ? iso : iso + "Z").getTime();
+    const s = Math.floor(diff / 1000);
+    if (s < 60)   return s + "s ago";
+    if (s < 3600) return Math.floor(s / 60) + "m ago";
+    if (s < 86400) return Math.floor(s / 3600) + "h ago";
+    return Math.floor(s / 86400) + "d ago";
+  }
+
   // ── Init ───────────────────────────────────────────────────────
   document.getElementById("contract").addEventListener("keydown", e => {
     if (e.key === "Enter") runScan();
@@ -1248,6 +1625,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     loadScammerList();
+    loadWhaleList();
     refreshSnifferStatus();
     setInterval(refreshSnifferStatus, 30_000);
   });
