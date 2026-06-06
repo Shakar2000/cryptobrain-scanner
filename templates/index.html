@@ -726,6 +726,157 @@
       .scammer-add-row { flex-direction: column; }
     }
 
+    /* ── Smart Money Signal Feed ────────────────────────────── */
+    :root {
+      --signal:        #fbbf24;
+      --signal-strong: #f97316;
+      --signal-bg:     rgba(251, 191, 36, 0.07);
+      --signal-border: rgba(251, 191, 36, 0.32);
+      --signal-glow:   rgba(251, 191, 36, 0.35);
+    }
+
+    @keyframes signalPulse {
+      0%, 100% { box-shadow: 0 0 30px var(--signal-glow), inset 0 0 40px rgba(251,191,36,0.03); }
+      50%       { box-shadow: 0 0 55px var(--signal-glow), inset 0 0 60px rgba(251,191,36,0.07); }
+    }
+
+    /* Smart Money card injected into scan results */
+    .sm-card {
+      background: var(--signal-bg);
+      border: 1.5px solid var(--signal-border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .sm-card.ultra { animation: signalPulse 2.5s ease-in-out infinite; }
+
+    .sm-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sm-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* Strength badges (used in card and feed items) */
+    .sm-str-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      padding: 3px 11px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .sm-str-badge.ULTRA    { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.4); }
+    .sm-str-badge.STRONG   { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+    .sm-str-badge.MODERATE { background: rgba(245,158,11,0.10); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .sm-str-badge.WEAK     { background: rgba(100,116,139,0.10);color: var(--muted); border: 1px solid var(--border); }
+
+    /* Signal type tags */
+    .sig-types-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+
+    .sig-type-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .sig-type-tag.MULTI_WALLET    { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .sig-type-tag.EARLY_ENTRY     { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }
+    .sig-type-tag.CLEAN_ENTRY     { background: rgba(34,197,94,0.12);  color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+    .sig-type-tag.HIGH_CONVICTION { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+
+    /* Wallet rows inside the smart money card */
+    .sm-wallet-list  { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+
+    .sm-wallet-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(251,191,36,0.15);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .sm-wallet-row-label { flex: 1; font-weight: 600; color: var(--text); }
+    .sm-wallet-row-pct   { font-weight: 700; color: #fbbf24; font-family: 'Courier New', monospace; }
+
+    /* Context / meta line below wallet rows */
+    .sm-context {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* Signal feed panel (list items) */
+    .signal-feed-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .signal-feed-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+    .signal-feed-item.lv-ULTRA    { border-left: 3px solid #fbbf24; }
+    .signal-feed-item.lv-STRONG   { border-left: 3px solid #f97316; }
+    .signal-feed-item.lv-MODERATE { border-left: 3px solid #f59e0b; }
+    .signal-feed-item.lv-WEAK     { border-left: 3px solid var(--muted); }
+
+    .sf-top   { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+    .sf-token { font-weight: 700; color: var(--text); }
+    .sf-time  { font-size: 10px; color: var(--muted); white-space: nowrap; }
+    .sf-sub   { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+
+    /* Smart wallet management panel list items */
+    .sm-wallets-wrap {
+      display: flex;
+      flex-direction: column;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .sm-wallet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid #fbbf24;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+    }
+
+    .sm-wallet-info { flex: 1; min-width: 0; }
+    .sm-wallet-name { font-weight: 700; color: var(--text); font-size: 13px; }
+    .sm-wallet-addr { font-family: 'Courier New', monospace; color: var(--muted); font-size: 11px; word-break: break-all; margin-top: 2px; }
+    .sm-wallet-meta { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .sm-signal-count { color: #fbbf24; font-weight: 700; }
+
     /* ── Team Stability Analysis ────────────────────────────── */
 
     .team-card {
@@ -1325,6 +1476,70 @@
       </div>
     </div>
 
+    <!-- ── Smart Money Wallets Panel ────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('smwallet')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">💰</span>
+          <div>
+            <div class="mgmt-title">Smart Money Wallets</div>
+            <div class="mgmt-sub" id="smwallet-sub">Loading…</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="smwallet-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="smwallet-body" style="display:none">
+        <div class="scammer-add-row">
+          <input
+            id="smwallet-addr"
+            type="text"
+            placeholder="Wallet address"
+            autocomplete="off"
+            spellcheck="false"
+            onkeydown="if(event.key==='Enter') addSmartWallet()"
+          />
+          <input
+            id="smwallet-label"
+            type="text"
+            placeholder="Label (e.g. Alpha Trader)"
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter') addSmartWallet()"
+          />
+          <button class="btn-add" onclick="addSmartWallet()">+ Add</button>
+        </div>
+        <div id="smwallet-list-wrap">
+          <div class="empty-list">No smart wallets tracked. Add known profitable wallets above.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Smart Money Signal Feed Panel ─────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('smfeed')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">💎</span>
+          <div>
+            <div class="mgmt-title">Smart Money Feed</div>
+            <div class="mgmt-sub" id="smfeed-sub">Signals from scanned tokens</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="smfeed-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="smfeed-body" style="display:none">
+        <div class="alerts-header-row">
+          <span class="alerts-section-label">Recent Signals</span>
+          <button class="btn-refresh" onclick="loadSignalFeed()">↻ Refresh</button>
+        </div>
+        <div class="signal-feed-wrap" id="signal-feed-list">
+          <div class="no-alerts-msg">No signals yet. Add smart wallets then scan tokens.</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1390,7 +1605,7 @@
     const resultEl = document.getElementById("result");
     const {
       verdict, info, red_findings, yellow_findings, dex,
-      scammer_match, confidence_score, whale_alerts, team_analysis
+      scammer_match, confidence_score, whale_alerts, team_analysis, smart_money
     } = data;
     const meta = VERDICT_META[verdict] || VERDICT_META.YELLOW;
 
@@ -1461,6 +1676,8 @@
         ${confidenceHtml}
         <div class="verdict-sub">${meta.sub}</div>
       </div>
+
+      ${renderSmartMoneyCard(smart_money)}
 
       <!-- Token Info Grid -->
       <div class="card fade-up">
@@ -1636,8 +1853,10 @@
     chevron.classList.toggle("open", !isOpen);
     if (!isOpen && name === "sniffer") { refreshSnifferStatus(); loadSnifferAlerts(); }
     if (!isOpen && name === "scammer") loadScammerList();
-    if (!isOpen && name === "whale")   { loadWhaleList(); loadWhaleActivity(); }
+    if (!isOpen && name === "whale")    { loadWhaleList(); loadWhaleActivity(); }
     if (!isOpen && name === "team")    loadTeamProfiles();
+    if (!isOpen && name === "smwallet") loadSmartWallets();
+    if (!isOpen && name === "smfeed")   loadSignalFeed();
   }
 
   // ── Sniffer Bot ────────────────────────────────────────────────
@@ -1740,6 +1959,167 @@
                     onclick="removeScammer('${escHtml(addr)}')">✕ Remove</button>
           </div>`).join("")}
       </div>`;
+    } catch(e) {}
+  }
+
+  // ── Smart Money ────────────────────────────────────────────────
+
+  function renderSmartMoneyCard(sm) {
+    if (!sm || !sm.has_signal) return "";
+
+    const label = sm.signal_label || "WEAK";
+    const score = sm.signal_strength || 1;
+
+    const scoreColor = label === "ULTRA"    ? "#fbbf24"
+                     : label === "STRONG"   ? "#fb923c"
+                     : label === "MODERATE" ? "#f59e0b"
+                     :                        "var(--muted)";
+
+    const typesHtml = (sm.signal_types || []).map(t =>
+      `<span class="sig-type-tag ${escHtml(t)}">${escHtml(t.replace(/_/g, " "))}</span>`
+    ).join("");
+
+    const walletsHtml = (sm.wallets || []).map(w => `
+      <div class="sm-wallet-row">
+        <span style="font-size:15px;flex-shrink:0">💰</span>
+        <span class="sm-wallet-row-label">${escHtml(w.label)}</span>
+        <span class="sm-wallet-row-pct">${w.holdings_pct}%</span>
+      </div>`).join("");
+
+    const ctx   = sm.context || {};
+    const parts = [];
+    if (sm.holder_count > 0) parts.push(Number(sm.holder_count).toLocaleString() + " holders");
+    if (ctx.is_early)        parts.push("Early entry");
+    if (sm.liquidity_usd)    parts.push("$" + formatNumber(sm.liquidity_usd) + " liq");
+    if (sm.price_usd)        parts.push("$" + formatPrice(sm.price_usd));
+    if (ctx.is_clean)        parts.push("Clean token");
+
+    return `
+      <div class="sm-card ${escHtml(label.toLowerCase())} fade-up">
+        <div class="sm-card-header">
+          <div class="sm-card-title">
+            <span style="font-size:20px;line-height:1">💎</span>
+            <span>Smart Money Signal</span>
+          </div>
+          <span class="sm-str-badge ${escHtml(label)}">${escHtml(label)} ${score}/10</span>
+        </div>
+
+        ${typesHtml ? `<div class="sig-types-row">${typesHtml}</div>` : ""}
+
+        <div class="confidence-row" style="margin:0 0 12px">
+          <span class="confidence-label-txt">Signal</span>
+          <div class="confidence-bar-wrap">
+            <div class="confidence-fill" style="width:${(score/10)*100}%;background:${scoreColor}"></div>
+          </div>
+          <span class="confidence-num" style="color:${scoreColor}">${score}<small>/10</small></span>
+        </div>
+
+        <div class="sm-wallet-list">${walletsHtml}</div>
+
+        ${parts.length ? `<div class="sm-context">${parts.map(p => `<span>${escHtml(p)}</span>`).join('<span style="color:var(--border)">·</span>')}</div>` : ""}
+      </div>`;
+  }
+
+  async function addSmartWallet() {
+    const addr  = document.getElementById("smwallet-addr").value.trim();
+    const label = document.getElementById("smwallet-label").value.trim();
+    if (!addr) return;
+    const resp = await fetch("/smartwallet/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr, label }),
+    });
+    const result = await resp.json();
+    if (result.ok) {
+      document.getElementById("smwallet-addr").value  = "";
+      document.getElementById("smwallet-label").value = "";
+    }
+    loadSmartWallets();
+  }
+
+  async function removeSmartWallet(addr) {
+    await fetch("/smartwallet/remove", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr }),
+    });
+    loadSmartWallets();
+  }
+
+  async function loadSmartWallets() {
+    try {
+      const resp    = await fetch("/smartwallet/list");
+      const wallets = await resp.json();
+      const sub     = document.getElementById("smwallet-sub");
+      const wrap    = document.getElementById("smwallet-list-wrap");
+
+      sub.textContent = wallets.length + " wallet" + (wallets.length === 1 ? "" : "s") + " tracked";
+
+      if (wallets.length === 0) {
+        wrap.innerHTML = '<div class="empty-list">No smart wallets tracked. Add known profitable wallets above.</div>';
+        return;
+      }
+
+      wrap.innerHTML = `<div class="sm-wallets-wrap">
+        ${wallets.map(w => {
+          const addr  = w.address || "";
+          const short = addr.length > 16 ? addr.slice(0,10) + "…" + addr.slice(-6) : addr;
+          const sigs  = w.signal_count || 0;
+          const last  = w.last_signal ? timeAgo(w.last_signal) : "never";
+          const cat   = w.category && w.category !== "custom" ? " · " + escHtml(w.category) : "";
+
+          return `
+            <div class="sm-wallet-item">
+              <span style="font-size:18px;line-height:1;flex-shrink:0;margin-top:1px">💰</span>
+              <div class="sm-wallet-info">
+                <div class="sm-wallet-name">${escHtml(w.label)}</div>
+                <div class="sm-wallet-addr">${escHtml(short)}</div>
+                <div class="sm-wallet-meta">
+                  <span class="sm-signal-count">${sigs} signal${sigs === 1 ? "" : "s"}</span>
+                  · Last: ${escHtml(last)}${escHtml(cat)}
+                </div>
+              </div>
+              <button class="btn-remove" onclick="removeSmartWallet('${escHtml(addr)}')">✕</button>
+            </div>`;
+        }).join("")}
+      </div>`;
+    } catch(e) {}
+  }
+
+  async function loadSignalFeed() {
+    try {
+      const resp = await fetch("/signals/feed?n=30");
+      const { signals } = await resp.json();
+      const el  = document.getElementById("signal-feed-list");
+      const sub = document.getElementById("smfeed-sub");
+
+      const strongCount = (signals || []).filter(s => (s.signal_strength || 0) >= 6).length;
+      sub.textContent   = (signals || []).length + " signals · " + strongCount + " STRONG+";
+
+      if (!signals || signals.length === 0) {
+        el.innerHTML = '<div class="no-alerts-msg">No signals yet. Add smart wallets then scan tokens.</div>';
+        return;
+      }
+
+      el.innerHTML = signals.map(s => {
+        const lbl      = s.signal_label || "WEAK";
+        const names    = (s.wallets || []).map(w => escHtml(w.label)).join(", ");
+        const hStr     = s.holder_count ? s.holder_count + " holders" : "";
+        const liqStr   = s.liquidity_usd ? "$" + formatNumber(s.liquidity_usd) : "";
+        const subParts = [s.chain, hStr, liqStr, s.verdict].filter(Boolean);
+
+        return `
+          <div class="signal-feed-item lv-${escHtml(lbl)}">
+            <div class="sf-top">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                <span class="sm-str-badge ${escHtml(lbl)}" style="font-size:9px;padding:2px 8px">${escHtml(lbl)} ${s.signal_strength || 1}</span>
+                <span class="sf-token">${escHtml(s.token_name)} (${escHtml(s.token_symbol)})</span>
+              </div>
+              <span class="sf-time">${timeAgo(s.timestamp)}</span>
+            </div>
+            <div class="sf-sub">${names ? names + " · " : ""}${escHtml(subParts.join(" · "))}</div>
+          </div>`;
+      }).join("");
     } catch(e) {}
   }
 
@@ -2026,6 +2406,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     loadScammerList();
     loadWhaleList();
+    loadSmartWallets();
     refreshSnifferStatus();
     setInterval(refreshSnifferStatus, 30_000);
   });

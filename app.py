@@ -7,6 +7,8 @@ import scammer_db
 import sniffer_bot
 import whale_profiler
 import team_analyzer
+import wallet_tracker
+import signal_feed
 
 app = Flask(__name__)
 
@@ -289,6 +291,13 @@ def scan_token(contract_address: str, chain_input: str) -> dict:
         is_known_scammer=result["scammer_match"] is not None,
     )
 
+    result["smart_money"] = signal_feed.process_token_scan(
+        contract_address, chain_id, token_data, dex_data,
+        verdict=result["verdict"],
+        team_score=result["team_analysis"].get("stability_score"),
+        confidence_score=result["confidence_score"],
+    )
+
     return result
 
 
@@ -368,6 +377,50 @@ def sniffer_status():
 def sniffer_alerts():
     n = min(int(request.args.get("n", 20)), 100)
     return jsonify({"alerts": sniffer_bot.recent_alerts(n)})
+
+
+# ── Smart Money routes ────────────────────────────────────────────────────
+
+@app.route("/signals/feed")
+def signals_feed():
+    n            = min(int(request.args.get("n", 50)), 200)
+    min_strength = int(request.args.get("min_strength", 1))
+    chain        = request.args.get("chain_id")
+    verdict      = request.args.get("verdict")
+    return jsonify({"signals": signal_feed.get_feed(n, min_strength, chain, verdict)})
+
+
+@app.route("/signals/token/<chain_id_param>/<address>")
+def signal_token(chain_id_param, address):
+    sig = signal_feed.get_token_signal(address, chain_id_param)
+    if not sig:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify(sig)
+
+
+@app.route("/smartwallet/list")
+def smartwallet_list():
+    return jsonify(list(wallet_tracker.list_wallets().values()))
+
+
+@app.route("/smartwallet/add", methods=["POST"])
+def smartwallet_add():
+    data    = request.get_json(force=True)
+    address = (data.get("address")  or "").strip()
+    label   = (data.get("label")    or "").strip()
+    category= (data.get("category") or "custom").strip()
+    if not address:
+        return jsonify({"ok": False, "error": "Address required"}), 400
+    return jsonify(wallet_tracker.add_wallet(address, label, category))
+
+
+@app.route("/smartwallet/remove", methods=["POST"])
+def smartwallet_remove():
+    data    = request.get_json(force=True)
+    address = (data.get("address") or "").strip()
+    if not address:
+        return jsonify({"ok": False, "error": "Address required"}), 400
+    return jsonify(wallet_tracker.remove_wallet(address))
 
 
 # ── Team Analyzer routes ──────────────────────────────────────────────────
