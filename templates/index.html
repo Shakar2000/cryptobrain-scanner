@@ -1401,6 +1401,183 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Phase 8: Alert Monitor ────────────────────────────────── */
+    .alert-status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .alert-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .alert-status-badge.running {
+      color: var(--green);
+      border-color: rgba(34,197,94,0.35);
+      background: rgba(34,197,94,0.08);
+    }
+    .alert-status-badge.stopped {
+      color: var(--muted);
+    }
+    .alert-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+    .alert-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-alert-start {
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(34,197,94,0.4);
+      background: rgba(34,197,94,0.1);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-alert-start:hover { background: rgba(34,197,94,0.2); }
+    .btn-alert-stop {
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(239,68,68,0.4);
+      background: rgba(239,68,68,0.08);
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-alert-stop:hover { background: rgba(239,68,68,0.18); }
+    .btn-alert-test {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-alert-test:hover { color: var(--text); border-color: var(--accent); }
+
+    .alert-health-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .alert-health-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 11px;
+      text-align: center;
+    }
+    .alert-health-cell .health-label {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 3px;
+    }
+    .alert-health-cell .health-val {
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .health-ok  { color: var(--green); }
+    .health-err { color: var(--red);   }
+
+    .alert-stats-row {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .alert-stats-row span strong { color: var(--text); }
+
+    .alert-tg-notice {
+      font-size: 11px;
+      color: var(--yellow);
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+    .alert-tg-ok {
+      font-size: 11px;
+      color: var(--green);
+      background: rgba(34,197,94,0.05);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+
+    /* Journal */
+    .journal-section-hdr {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      margin: 16px 0 8px;
+    }
+    .journal-add-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .journal-position-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .journal-position-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .journal-position-name { font-weight: 700; color: var(--text); }
+    .journal-position-meta { color: var(--muted); font-size: 11px; }
+    .journal-status-open   { color: var(--green);  font-size: 10px; font-weight: 700; }
+    .journal-status-closed { color: var(--muted);  font-size: 10px; }
+    .journal-alerted       { color: #a78bfa;        font-size: 10px; }
+    .btn-journal-close {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(239,68,68,0.3);
+      background: transparent;
+      color: var(--red);
+      cursor: pointer;
+    }
+    .btn-journal-close:hover { background: rgba(239,68,68,0.1); }
+
     /* ── Market Pulse ──────────────────────────────────────────── */
     .pulse-stamp {
       background: rgba(100,116,139,0.06);
@@ -1993,6 +2170,111 @@
       </div>
     </div>
 
+    <!-- ── Alert Settings Panel ───────────────────────────────── -->
+    <div class="mgmt-panel">
+      <button class="mgmt-header" onclick="togglePanel('alerts')">
+        <div class="mgmt-header-left">
+          <span class="mgmt-icon">🔔</span>
+          <div>
+            <div class="mgmt-title">Alert Settings</div>
+            <div class="mgmt-sub" id="alerts-sub">Telegram alerts · background monitor</div>
+          </div>
+        </div>
+        <div class="mgmt-right">
+          <span class="mgmt-chevron" id="alerts-chevron">▼</span>
+        </div>
+      </button>
+      <div class="mgmt-body" id="alerts-body" style="display:none">
+
+        <!-- Telegram status -->
+        <div id="alert-tg-status"></div>
+
+        <!-- Monitor controls -->
+        <div class="alert-status-row">
+          <span class="alert-status-badge stopped" id="alert-running-badge">
+            <span class="alert-dot"></span>
+            <span id="alert-running-label">Stopped</span>
+          </span>
+          <div class="alert-controls">
+            <button class="btn-alert-start" onclick="startAlertMonitor()" id="btn-alert-start">▶ Start Monitor</button>
+            <button class="btn-alert-stop"  onclick="stopAlertMonitor()"  id="btn-alert-stop">■ Stop</button>
+            <button class="btn-alert-test"  onclick="sendTestAlert()">📨 Test Alert</button>
+          </div>
+        </div>
+
+        <!-- Health grid -->
+        <div class="alert-health-grid">
+          <div class="alert-health-cell">
+            <div class="health-label">Whale Check</div>
+            <div class="health-val" id="health-whale">—</div>
+          </div>
+          <div class="alert-health-cell">
+            <div class="health-label">Position Check</div>
+            <div class="health-val" id="health-position">—</div>
+          </div>
+          <div class="alert-health-cell">
+            <div class="health-label">Macro Check</div>
+            <div class="health-val" id="health-macro">—</div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="alert-stats-row">
+          <span>Checks: <strong id="alert-check-count">0</strong></span>
+          <span>Alerts sent: <strong id="alert-alert-count">0</strong></span>
+          <span>Last check: <strong id="alert-last-check">—</strong></span>
+          <span>Macro: <strong id="alert-last-macro">—</strong></span>
+        </div>
+
+        <!-- Trade Journal -->
+        <div class="journal-section-hdr">Trade Journal — Position Monitor</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
+          Add open positions. The monitor fires a Telegram alert when any position hits 2.5× entry price.
+        </p>
+
+        <!-- Add position form -->
+        <div class="journal-add-grid">
+          <div class="input-wrap">
+            <label>Token Address</label>
+            <input id="journal-addr" placeholder="0x…" />
+          </div>
+          <div class="input-wrap">
+            <label>Chain</label>
+            <select id="journal-chain">
+              <option value="bsc">BNB Chain</option>
+              <option value="eth">Ethereum</option>
+              <option value="base">Base</option>
+              <option value="polygon">Polygon</option>
+            </select>
+          </div>
+          <div class="input-wrap">
+            <label>Token Name</label>
+            <input id="journal-name" placeholder="e.g. Pepe" />
+          </div>
+          <div class="input-wrap">
+            <label>Symbol</label>
+            <input id="journal-symbol" placeholder="e.g. PEPE" />
+          </div>
+          <div class="input-wrap">
+            <label>Entry Price (USD)</label>
+            <input id="journal-entry" type="number" step="any" placeholder="0.0000001" />
+          </div>
+          <div class="input-wrap">
+            <label>Deploy Amount ($)</label>
+            <input id="journal-deploy" type="number" step="any" placeholder="60" />
+          </div>
+        </div>
+        <button class="btn-add" onclick="addJournalPosition()" style="margin-bottom:12px">+ Add Position</button>
+
+        <!-- Positions list -->
+        <div id="journal-list">
+          <div class="no-alerts-msg">No positions tracked yet.</div>
+        </div>
+
+        <button class="btn-refresh" onclick="loadJournalList()" style="margin-top:8px">↻ Refresh</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -2564,6 +2846,7 @@
     if (!isOpen && name === "team")    loadTeamProfiles();
     if (!isOpen && name === "smwallet") loadSmartWallets();
     if (!isOpen && name === "smfeed")   loadSignalFeed();
+    if (!isOpen && name === "alerts")  { initAlertsPanel(); loadJournalList(); }
   }
 
   // ── Sniffer Bot ────────────────────────────────────────────────
@@ -3312,6 +3595,190 @@
     if (s < 3600) return Math.floor(s / 60) + "m ago";
     if (s < 86400) return Math.floor(s / 3600) + "h ago";
     return Math.floor(s / 86400) + "d ago";
+  }
+
+  // ── Alert Monitor ──────────────────────────────────────────────
+
+  let _alertPollerTimer = null;
+
+  async function initAlertsPanel() {
+    await refreshAlertStatus();
+  }
+
+  async function refreshAlertStatus() {
+    try {
+      const resp = await fetch("/alerts/status");
+      const s    = await resp.json();
+
+      // Telegram notice
+      const tgEl = document.getElementById("alert-tg-status");
+      if (s.telegram_available) {
+        tgEl.innerHTML = '<div class="alert-tg-ok">✅ Telegram connected — alerts will be sent to your configured chat.</div>';
+      } else {
+        tgEl.innerHTML = '<div class="alert-tg-notice">⚠ Telegram not configured. Set <code>TELEGRAM_BOT_TOKEN</code> and <code>TELEGRAM_CHAT_ID</code> environment variables, then restart the server.</div>';
+      }
+
+      // Running badge
+      const badge = document.getElementById("alert-running-badge");
+      const label = document.getElementById("alert-running-label");
+      if (s.running) {
+        badge.className = "alert-status-badge running";
+        label.textContent = "Running";
+      } else {
+        badge.className = "alert-status-badge stopped";
+        label.textContent = "Stopped";
+      }
+
+      // Health cells
+      const hw = document.getElementById("health-whale");
+      const hp = document.getElementById("health-position");
+      const hm = document.getElementById("health-macro");
+      hw.innerHTML = s.whale_check_ok    ? '<span class="health-ok">OK</span>'  : '<span class="health-err">ERR</span>';
+      hp.innerHTML = s.position_check_ok ? '<span class="health-ok">OK</span>'  : '<span class="health-err">ERR</span>';
+      hm.innerHTML = s.macro_check_ok    ? '<span class="health-ok">OK</span>'  : '<span class="health-err">ERR</span>';
+      if (!s.running) {
+        hw.innerHTML = hp.innerHTML = hm.innerHTML = '<span style="color:var(--muted)">—</span>';
+      }
+
+      // Stats
+      document.getElementById("alert-check-count").textContent = s.check_count || 0;
+      document.getElementById("alert-alert-count").textContent = s.alert_count || 0;
+      document.getElementById("alert-last-check").textContent  = s.last_check_time ? timeAgo(s.last_check_time) : "—";
+      document.getElementById("alert-last-macro").textContent  = s.last_macro_verdict || "—";
+
+      // Sub label
+      const sub = document.getElementById("alerts-sub");
+      sub.textContent = s.running
+        ? `Running · ${s.alert_count} alert${s.alert_count === 1 ? "" : "s"} sent`
+        : "Stopped · Telegram alerts";
+
+      // Auto-poll while running
+      if (s.running && !_alertPollerTimer) {
+        _alertPollerTimer = setInterval(refreshAlertStatus, 30_000);
+      } else if (!s.running && _alertPollerTimer) {
+        clearInterval(_alertPollerTimer);
+        _alertPollerTimer = null;
+      }
+    } catch(e) {}
+  }
+
+  async function startAlertMonitor() {
+    const btn = document.getElementById("btn-alert-start");
+    btn.disabled = true;
+    try {
+      await fetch("/alerts/start", { method: "POST" });
+      await refreshAlertStatus();
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function stopAlertMonitor() {
+    const btn = document.getElementById("btn-alert-stop");
+    btn.disabled = true;
+    try {
+      await fetch("/alerts/stop", { method: "POST" });
+      await refreshAlertStatus();
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function sendTestAlert() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    try {
+      const resp = await fetch("/alerts/test", { method: "POST" });
+      const data = await resp.json();
+      btn.textContent = data.ok ? "✓ Sent!" : "✗ Failed";
+      setTimeout(() => { btn.disabled = false; btn.textContent = "📨 Test Alert"; }, 2500);
+    } catch {
+      btn.disabled = false;
+      btn.textContent = "📨 Test Alert";
+    }
+  }
+
+  // ── Trade Journal ──────────────────────────────────────────────
+
+  async function loadJournalList() {
+    try {
+      const resp  = await fetch("/journal/list");
+      const { positions } = await resp.json();
+      const wrap  = document.getElementById("journal-list");
+
+      if (!positions || positions.length === 0) {
+        wrap.innerHTML = '<div class="no-alerts-msg">No positions tracked yet.</div>';
+        return;
+      }
+
+      wrap.innerHTML = positions.map(p => {
+        const isOpen    = p.status === "open";
+        const alerted   = p.alerted;
+        const entry     = p.entry_price_usd;
+        const target    = p.target_price_usd;
+        const fmtEntry  = entry  >= 1 ? `$${entry.toLocaleString(undefined, {maximumFractionDigits:4})}`  : `$${entry.toFixed(8)}`;
+        const fmtTarget = target >= 1 ? `$${target.toLocaleString(undefined, {maximumFractionDigits:4})}` : `$${target.toFixed(8)}`;
+
+        return `
+          <div class="journal-position-item">
+            <div class="journal-position-top">
+              <span class="journal-position-name">${escHtml(p.token_name)} (${escHtml(p.token_symbol)})</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                ${alerted ? '<span class="journal-alerted">🎯 Alerted</span>' : ""}
+                <span class="${isOpen ? "journal-status-open" : "journal-status-closed"}">${isOpen ? "● OPEN" : "CLOSED"}</span>
+                ${isOpen ? `<button class="btn-journal-close" onclick="closeJournalPosition('${escHtml(p.id)}')">✕ Close</button>` : ""}
+              </div>
+            </div>
+            <div class="journal-position-meta">
+              Entry: ${fmtEntry} · Target (${p.target_multiplier}×): ${fmtTarget}
+              · Deploy: $${p.deploy_amount} · Pull-out: $${p.pullout_amount.toFixed(2)}
+              · Chain: ${escHtml(p.chain)} · ${timeAgo(p.opened_at)}
+            </div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px">
+              <code style="font-size:10px">${escHtml(p.token_address)}</code>
+            </div>
+          </div>`;
+      }).join("");
+    } catch(e) {}
+  }
+
+  async function addJournalPosition() {
+    const addr   = document.getElementById("journal-addr").value.trim();
+    const chain  = document.getElementById("journal-chain").value;
+    const name   = document.getElementById("journal-name").value.trim() || "Unknown";
+    const symbol = document.getElementById("journal-symbol").value.trim() || "???";
+    const entry  = parseFloat(document.getElementById("journal-entry").value);
+    const deploy = parseFloat(document.getElementById("journal-deploy").value);
+
+    if (!addr || !entry || !deploy) return;
+
+    const resp = await fetch("/journal/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token_address: addr, chain, token_name: name, token_symbol: symbol,
+        entry_price_usd: entry, deploy_amount: deploy,
+      }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      document.getElementById("journal-addr").value   = "";
+      document.getElementById("journal-name").value   = "";
+      document.getElementById("journal-symbol").value = "";
+      document.getElementById("journal-entry").value  = "";
+      document.getElementById("journal-deploy").value = "";
+      loadJournalList();
+    }
+  }
+
+  async function closeJournalPosition(id) {
+    await fetch("/journal/close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    loadJournalList();
   }
 
   // ── Init ───────────────────────────────────────────────────────

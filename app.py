@@ -13,6 +13,9 @@ import signal_feed
 import market_pulse
 import ai_analyst
 import moralis_client
+import alert_monitor
+import trade_journal
+import telegram_bot
 
 app = Flask(__name__)
 
@@ -570,6 +573,75 @@ def snapshot():
 def snapshot_log():
     n = min(int(request.args.get("n", 30)), 90)
     return jsonify({"log": market_pulse.get_log(n)})
+
+
+# ── Alert Monitor routes ──────────────────────────────────────────────────
+
+@app.route("/alerts/status")
+def alerts_status():
+    return jsonify(alert_monitor.status())
+
+
+@app.route("/alerts/start", methods=["POST"])
+def alerts_start():
+    started = alert_monitor.start()
+    return jsonify({"ok": True, "already_running": not started})
+
+
+@app.route("/alerts/stop", methods=["POST"])
+def alerts_stop():
+    alert_monitor.stop()
+    return jsonify({"ok": True})
+
+
+@app.route("/alerts/test", methods=["POST"])
+def alerts_test():
+    if not telegram_bot.is_available():
+        return jsonify({"ok": False, "error": "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set"}), 503
+    sent = alert_monitor.send_test()
+    return jsonify({"ok": sent})
+
+
+# ── Trade Journal routes ──────────────────────────────────────────────────
+
+@app.route("/journal/list")
+def journal_list():
+    status = request.args.get("status")
+    return jsonify({"positions": trade_journal.list_positions(status=status)})
+
+
+@app.route("/journal/add", methods=["POST"])
+def journal_add():
+    data = request.get_json(force=True)
+    token_address = (data.get("token_address") or "").strip()
+    chain         = (data.get("chain")         or "bsc").strip()
+    token_name    = (data.get("token_name")    or "Unknown").strip()
+    token_symbol  = (data.get("token_symbol")  or "???").strip()
+
+    try:
+        entry_price  = float(data.get("entry_price_usd") or 0)
+        deploy       = float(data.get("deploy_amount")   or 0)
+        target_mult  = float(data.get("target_multiplier", 2.5))
+        stop_loss    = float(data.get("stop_loss_pct",   -20))
+    except (TypeError, ValueError) as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+    if not token_address or entry_price <= 0 or deploy <= 0:
+        return jsonify({"ok": False, "error": "token_address, entry_price_usd, and deploy_amount are required"}), 400
+
+    return jsonify(trade_journal.add_position(
+        token_address, chain, token_name, token_symbol,
+        entry_price, deploy, target_mult, stop_loss,
+    ))
+
+
+@app.route("/journal/close", methods=["POST"])
+def journal_close():
+    data        = request.get_json(force=True)
+    position_id = (data.get("id") or "").strip()
+    if not position_id:
+        return jsonify({"ok": False, "error": "id required"}), 400
+    return jsonify(trade_journal.close_position(position_id))
 
 
 if __name__ == "__main__":

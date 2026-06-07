@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-06  
 **Branch:** master  
-**Commits:** 13
+**Commits:** 15
 
 | # | Commit | Description |
 |---|--------|-------------|
@@ -19,6 +19,8 @@
 | 11 | `7fb0ac7` | Phase 7: Moralis API integration for cross-chain whale profiling |
 | 12 | `1b375ae` | Add hex chain ID support and BSC-first enrich order |
 | 13 | `b7d2877` | Auto-enrich on whale track: remove Enrich button, add loading indicator |
+| 14 | `f6f5286` | docs: update PROJECT_STATE.md with Phase 7 and Track+Enrich changes |
+| 15 | *(pending)* | Phase 8: Fully autonomous Telegram alert system |
 
 ---
 
@@ -36,6 +38,7 @@ multi-layered intelligence report:
 7. **AI Analysis Engine** — sends the complete scan data to Claude (`claude-sonnet-4-5`) and returns a structured trade verdict with layer, deploy amount, target price, pull-out amount, stop loss, and 3-sentence reasoning
 8. **Moby Dick Whale Profiler** — builds full behavioral profiles per tracked whale wallet: Entry/Exit/Shakeout profiles with historical averages and a Pattern Score (UNRELIABLE → EMERGING → RELIABLE → ORACLE); fires a Moby Dick Alert when a whale's new entry conditions match their historical pattern
 9. **Moralis Integration** — cross-chain wallet enrichment and whale discovery; tracking a wallet automatically enriches its history across BSC → ETH → Base via Moralis; paste any successful token to pull its early buyers, score them 1–10 by entry timing/size/holdings, auto-add wallets scoring 7+ to the whale database
+10. **Telegram Alert System** — fully autonomous background monitor running three checks every 5 minutes: whale movement detection (new positions via Moralis), trade journal position target hits (2.5×), and macro verdict changes (hourly); all alerts delivered to Telegram
 
 A background sniffer bot can poll DEX Screener every 5 minutes for new token
 listings and auto-scan them, logging any GREEN verdicts.
@@ -48,7 +51,7 @@ listings and auto-scan them, logging any GREEN verdicts.
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| `app.py` | 577 | Flask application. All routes. `scan_token()` is the main pipeline. `/whale/add` auto-fires background Moralis enrichment on successful add. |
+| `app.py` | 632 | Flask application. All routes. `scan_token()` is the main pipeline. `/whale/add` auto-fires background Moralis enrichment on successful add. |
 | `scammer_db.py` | 50 | CRUD wrapper around `scammer_db.json`. Blacklist checked against creator/owner on every scan. |
 | `sniffer_bot.py` | 153 | Background daemon. Polls DEX Screener every 5 minutes, auto-scans, logs GREEN verdicts. |
 | `whale_profiler.py` | 651 | Manages `whale_profiles.json`. Tracks user-added wallets; classifies ENTRY/EXIT/INCREASE/DECREASE/DETECTED. Computes Entry/Exit/Shakeout/Pattern behavioral profiles; fires Moby Dick Alerts on pattern-matched entries. |
@@ -58,12 +61,15 @@ listings and auto-scan them, logging any GREEN verdicts.
 | `signal_feed.py` | 198 | Manages `smart_money_signals.json`. Scores smart money hits 1–10; type tags MULTI_WALLET/EARLY_ENTRY/CLEAN_ENTRY/HIGH_CONVICTION. |
 | `market_pulse.py` | 97 | Manages `market_pulse_log.json`. Fetches BTC/ETH/SOL prices (CoinGecko), BTC dominance (CoinGecko `/global` → `market_cap_percentage.btc`), Fear & Greed (Alternative.me). Caches once per day; max 90-day rolling window. |
 | `ai_analyst.py` | 136 | Calls `claude-sonnet-4-5` with the full scan result. Parses response for verdict/layer/deploy/target_price/pullout/stop_loss/reasoning. Returns `None` if `ANTHROPIC_API_KEY` not set. |
+| `telegram_bot.py` | 35 | Thin Telegram Bot API wrapper. `send_message(text)` POSTs to `/bot{TOKEN}/sendMessage`. `is_available()` checks both env vars are set. |
+| `alert_monitor.py` | 185 | Autonomous background monitor daemon. Three checks every 5 minutes: whale movements (Moralis holdings diff), position targets (DEX Screener price vs 2.5× entry), macro verdict change (hourly). Exposes `start()`, `stop()`, `status()`, `send_test()`. |
+| `trade_journal.py` | 65 | Manages `trade_journal.json`. CRUD for open/closed trade positions. `mark_alerted()` prevents duplicate target-hit alerts. |
 
 ### HTML / templates
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| `templates/index.html` | 3333 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts collapsible management panels. |
+| `templates/index.html` | ~3560 | Single-page UI. Dark theme, no external frameworks. Vanilla JS. Renders all scan result cards and hosts collapsible management panels including the new Alert Settings panel. |
 
 ### Data files (auto-created, git-tracked)
 
@@ -75,6 +81,7 @@ listings and auto-scan them, logging any GREEN verdicts.
 | `smart_wallets.json` | Smart money wallet registry with signal counts |
 | `smart_money_signals.json` | Scored signal feed, one record per token (max 500) |
 | `market_pulse_log.json` | Daily macro snapshots, newest first (max 90 days) |
+| `trade_journal.json` | Open and closed trade positions for the position monitor |
 
 ### Deployment / config
 
@@ -193,6 +200,23 @@ return full result dict  → serialised as JSON to the browser
 | Method | Route | Description |
 |--------|-------|-------------|
 | GET | `/moralis/status` | `{ available: true/false }` — whether `MORALIS_API_KEY` is set |
+
+### Alert Monitor (Phase 8)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/alerts/status` | Monitor health: `{ running, telegram_available, moralis_available, last_check_time, check_count, alert_count, whale_check_ok, position_check_ok, macro_check_ok, last_macro_verdict, errors }` |
+| POST | `/alerts/start` | Start the background monitor daemon. Sends Telegram startup message. |
+| POST | `/alerts/stop` | Stop the daemon. Sends Telegram shutdown message. |
+| POST | `/alerts/test` | Send a test message to verify Telegram is configured. Returns `{ ok: true/false }`. |
+
+### Trade Journal (Phase 8)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/journal/list?status=open` | All positions, optionally filtered by status (`open`/`closed`) |
+| POST | `/journal/add` | Add position. Body: `{ token_address, chain, token_name, token_symbol, entry_price_usd, deploy_amount, target_multiplier?, stop_loss_pct? }` |
+| POST | `/journal/close` | Close a position. Body: `{ id }` |
 
 ---
 
@@ -330,7 +354,7 @@ Moralis-enriched events additionally carry `value_decimal` (token amount transfe
 | `GET /wallets/{address}/history` | Full wallet transaction history |
 | `GET /erc20/{address}/transfers` | ERC20 transfers for a wallet address (enrichment) |
 | `GET /erc20/{token_address}/transfers` | All transfers of a token contract (discovery) |
-| `GET /{address}/erc20` | Current ERC20 token balances (still-holding check) |
+| `GET /{address}/erc20` | Current ERC20 token balances (still-holding check and whale movement detection) |
 
 ### Chain identifiers
 
@@ -356,6 +380,41 @@ When a wallet is added via `POST /whale/add` and `MORALIS_API_KEY` is set:
 
 ---
 
+## Telegram Alert System (Phase 8)
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | Target chat or channel ID |
+
+### How to set up the bot
+
+1. Message @BotFather on Telegram → `/newbot` → copy the token
+2. Message @userinfobot to get your chat ID (or use a channel ID prefixed with `-100`)
+3. Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in your environment
+4. Open the Alert Settings panel → click **Test Alert** to verify
+5. Click **Start Monitor** to activate autonomous monitoring
+
+### Alert types
+
+| Alert | Trigger | Frequency |
+|-------|---------|-----------|
+| 🐋 Whale Movement | Tracked whale wallet acquires a token not seen in previous check | Every 5-min cycle (if new token found) |
+| 🎯 Target Hit | Open position in trade journal reaches 2.5× entry price | Once per position (marked alerted after firing) |
+| ⚠️/✅/🛡️ Macro Change | Market Pulse macro verdict transitions between CLEAR/CAUTION/DEFENSIVE | Hourly check, fires only on change |
+
+### Monitor internals
+
+- Runs as a `threading.Thread(daemon=True)` — does not block HTTP serving
+- Whale check: `get_current_holdings()` per wallet per chain (ENRICH_CHAINS order); diffs against previous check's token set; seeds silently on first run
+- Position check: fetches current price from DEX Screener for each `open` position; once alerted, marks `alerted=True` to prevent duplicates
+- Macro check: runs every 60 cycles (~1 hour), force-refreshes market_pulse; seeds last_verdict silently on first run
+- Errors collected in rolling 10-item list, visible via `/alerts/status`
+
+---
+
 ## UI panels (index.html)
 
 All panels are collapsible and lazy-load on first open.
@@ -371,6 +430,7 @@ All panels are collapsible and lazy-load on first open.
 | Whale Intelligence | 🐋 | Track wallet (auto-enriches on add with spinner); 🐋 Profile button per card (lazy-loads behavioral profile from `/whale/moby/`); activity feed; 🔍 Discover Whales section (token address + chain → scored candidate list → auto-adds ≥7 to DB) |
 | Smart Money Wallets | 💰 | Add/remove smart money wallets |
 | Smart Money Feed | 💎 | Persistent scored signal feed across all scanned tokens |
+| Alert Settings | 🔔 | Telegram status · Start/Stop/Test monitor buttons · Health grid (whale/position/macro) · Stats · Trade Journal (add/close positions, list with target prices) |
 
 ---
 
@@ -379,7 +439,9 @@ All panels are collapsible and lazy-load on first open.
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `ANTHROPIC_API_KEY` | Optional | Enables AI Brain Verdict. If absent, `brain_verdict` is `null` and the card is silently skipped. |
-| `MORALIS_API_KEY` | Optional | Enables auto-enrichment on whale add, `/whale/enrich`, and `/whale/discover`. If absent, those routes return an error and the UI shows a notice banner. |
+| `MORALIS_API_KEY` | Optional | Enables auto-enrichment on whale add, `/whale/enrich`, `/whale/discover`, and whale movement checks in the alert monitor. |
+| `TELEGRAM_BOT_TOKEN` | Optional | Telegram bot token — enables alert monitor delivery. |
+| `TELEGRAM_CHAT_ID` | Optional | Telegram chat/channel ID — recipient for all alerts. |
 | `PORT` | Optional | HTTP port (default `8080`) |
 
 ---
@@ -389,11 +451,12 @@ All panels are collapsible and lazy-load on first open.
 | API | Endpoint base | Auth | Usage |
 |-----|--------------|------|-------|
 | GoPlus Security | `api.gopluslabs.io/api/v1` | None | Token security — holders, taxes, risk flags |
-| DEX Screener | `api.dexscreener.com/latest/dex/tokens` | None | Price, liquidity, volume, pair data |
+| DEX Screener | `api.dexscreener.com/latest/dex/tokens` | None | Price, liquidity, volume, pair data; also used by position monitor |
 | CoinGecko | `api.coingecko.com/api/v3` | None | BTC/ETH/SOL prices; BTC dominance |
 | Alternative.me | `api.alternative.me/fng` | None | Fear & Greed Index |
 | Anthropic | `api.anthropic.com` | `ANTHROPIC_API_KEY` | AI trade verdict via `claude-sonnet-4-5` |
-| Moralis | `deep-index.moralis.io/api/v2.2` | `MORALIS_API_KEY` | Cross-chain wallet history, token transfers, holdings |
+| Moralis | `deep-index.moralis.io/api/v2.2` | `MORALIS_API_KEY` | Cross-chain wallet history, token transfers, holdings, whale movement detection |
+| Telegram Bot API | `api.telegram.org` | `TELEGRAM_BOT_TOKEN` | Outbound alert delivery |
 
 ---
 
@@ -401,9 +464,11 @@ All panels are collapsible and lazy-load on first open.
 
 ```bash
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...   # optional
-export MORALIS_API_KEY=...            # optional
-python app.py                          # http://localhost:8080
+export ANTHROPIC_API_KEY=sk-ant-...        # optional
+export MORALIS_API_KEY=...                 # optional
+export TELEGRAM_BOT_TOKEN=...             # optional
+export TELEGRAM_CHAT_ID=...               # optional
+python app.py                              # http://localhost:8080
 ```
 
 Production:
